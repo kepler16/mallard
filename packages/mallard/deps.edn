@@ -9,7 +9,7 @@
         metosin/malli {:mvn/version "0.13.0"}
         com.taoensso/timbre {:mvn/version "6.2.2"}}
 
- :aliases {:build {:deps {local/build {:local/root "../build"}}
+ :aliases {:build {:deps {local/build {:local/root "../../build"}}
                    :ns-default build}
 
            :test {:extra-deps {lambdaisland/kaocha {:mvn/version "1.87.1366"}
