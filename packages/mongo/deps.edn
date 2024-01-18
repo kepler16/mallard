@@ -1,0 +1,26 @@
+{:kmono/config {:group k16
+                :artifact mallard-mongo-store
+                :build-cmd "just install"
+                :release-cmd "just release"}
+ :paths ["src"]
+
+ :deps {kepler16/mallard {:local/root "../mallard"}
+
+        org.mongodb/mongodb-driver-sync {:mvn/version "4.11.1"}
+        mongo-driver-3/mongo-driver-3 {:mvn/version "0.7.0"}
+
+        metosin/malli {:mvn/version "0.13.0"}
+        funcool/promesa {:mvn/version "11.0.678"}
+        tick/tick {:mvn/version "0.7.5"}
+
+        com.taoensso/timbre {:mvn/version "6.2.2"}}
+
+ :aliases {:build {:deps {io.github.clojure/tools.build {:mvn/version "0.9.5"}}
+                   :ns-default build}
+
+           :test {:extra-deps {lambdaisland/kaocha {:mvn/version "1.87.1366"}
+                               nubank/matcher-combinators {:mvn/version "3.8.8"}}
+                  :extra-paths ["test"]
+                  :exec-fn kaocha.runner/exec-fn
+                  :exec-args {}}}}
+
