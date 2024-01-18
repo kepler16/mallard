@@ -1,11 +1,11 @@
 {:kmono/config {:group kepler16
                 :artifact mallard-mongo-store
-                :build-cmd "just install"
+                :build-cmd "just build"
                 :release-cmd "just release"}
 
  :paths ["src"]
 
- :deps {kepler16/mallard {:local/root "../mallard"}
+ :deps {com.kepler16/mallard {:local/root "../mallard"}
 
         org.mongodb/mongodb-driver-sync {:mvn/version "4.11.1"}
         mongo-driver-3/mongo-driver-3 {:mvn/version "0.7.0"}
@@ -16,7 +16,7 @@
 
         com.taoensso/timbre {:mvn/version "6.2.2"}}
 
- :aliases {:build {:deps {io.github.clojure/tools.build {:mvn/version "0.9.5"}}
+ :aliases {:build {:deps {local/build {:local/root "../build"}}
                    :ns-default build}
 
            :test {:extra-deps {lambdaisland/kaocha {:mvn/version "1.87.1366"}

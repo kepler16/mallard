@@ -1,6 +1,6 @@
-{:kmono/config {:group kepler16
+{:kmono/config {:group com.kepler16
                 :artifact mallard
-                :build-cmd "just install"
+                :build-cmd "just build"
                 :release-cmd "just release"}
 
  :paths ["src"]
@@ -9,7 +9,7 @@
         metosin/malli {:mvn/version "0.13.0"}
         com.taoensso/timbre {:mvn/version "6.2.2"}}
 
- :aliases {:build {:deps {io.github.clojure/tools.build {:mvn/version "0.9.5"}}
+ :aliases {:build {:deps {local/build {:local/root "../build"}}
                    :ns-default build}
 
            :test {:extra-deps {lambdaisland/kaocha {:mvn/version "1.87.1366"}
@@ -17,4 +17,3 @@
                   :extra-paths ["test"]
                   :exec-fn kaocha.runner/exec-fn
                   :exec-args {}}}}
-

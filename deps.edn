@@ -4,6 +4,6 @@
         kepler16/mallard-mongo-store {:local/root "./packages/mongo"}}
 
  :aliases {:test {:extra-deps {nubank/matcher-combinators {:mvn/version "3.8.8"}}}
-           :kmono {:deps {kepler16/kmono {:mvn/version "1.1.1.0"}}
+           :kmono {:deps {kepler16/kmono {:mvn/version "1.1.2.0"}}
                    :ns-default k16.kmono.api}}}
 
