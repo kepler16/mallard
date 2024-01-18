@@ -43,7 +43,7 @@ jobs:
 
     - name: Release
       env:
-        CLOJARS_USERNAME: ci-kepler16-com
+        CLOJARS_USERNAME: infrastructure-kepler16-com
         CLOJARS_PASSWORD: ${{ secrets.CLOJARS_PASSWORD }}
       run: |
         just release \
