@@ -1,7 +1,8 @@
-{:kmono/config {:group k16
+{:kmono/config {:group kepler16
                 :artifact mallard-mongo-store
                 :build-cmd "just install"
                 :release-cmd "just release"}
+
  :paths ["src"]
 
  :deps {kepler16/mallard {:local/root "../mallard"}

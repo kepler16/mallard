@@ -1,4 +1,4 @@
-{:kmono/config {:group k16
+{:kmono/config {:group kepler16
                 :artifact mallard
                 :build-cmd "just install"
                 :release-cmd "just release"}
