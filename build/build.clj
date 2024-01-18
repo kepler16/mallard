@@ -30,7 +30,6 @@
                 :src-dirs ["src"]
                 :pom-data [[:description "Flexible migrations tooling"]
                            [:url "https://github.com/kepler16/mallard"]
-                           [:organization "Kepler16"]
                            [:licenses
                             [:license
                              [:name "MIT"]
