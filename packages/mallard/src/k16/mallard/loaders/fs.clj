@@ -9,31 +9,36 @@
 (defn- file->ns
   "Extract clojure ns name from a file"
   [file]
-  (->> file
-       slurp
+  (->> (slurp file)
        (re-find #"^\(ns\s+([^\s);]+)")
-       second
-       symbol))
+       second))
 
 (defn- resolve-migration-files [dir]
-  (->> (io/file dir)
+  (->> (or (io/resource dir)
+           (io/file dir))
+       io/file
        file-seq
        (filter #(.isFile ^java.io.File %))
        (filter #(str/ends-with? (.getName ^java.io.File %) ".clj"))
        (map (fn [file]
-              {:file file
-               :path (.getPath ^java.io.File file)
-               :ns (file->ns file)}))
-       (sort-by :path)))
+              {:path (.getPath ^java.io.File file)
+               :namespace (file->ns file)}))
+       (sort-by :path)
+       vec))
 
-(defn load-migrations!
-  "Given a resource path, attempt to load all migration files found therein."
+(defmacro load-migration-files!
+  "Given a file or resource directory path attempt to load all files found within as migrations.
+
+  This is implemented as a macro to allow preloading migrations during native-image compilation. This
+  also allows loading of migrations when they are bundled as resources within a jar as the full resource
+  paths are known up front."
   [dir]
-  (let [files (resolve-migration-files dir)]
-    (->> files
-         (map (fn [file]
-                (let [{ns' :ns path :path} file]
-                  (core/load-file path)
-                  {:id (-> (name ns') (str/split #"\.") last)
-                   :run-up! (ns-resolve ns' 'run-up!)
-                   :run-down! (ns-resolve ns' 'run-down!)}))))))
+  (let [namespaces (resolve-migration-files dir)]
+    `(do (doseq [namespace# ~namespaces]
+           (require (symbol namespace#)))
+
+         (->> ~namespaces
+              (map (fn [namespace#]
+                     {:id (-> namespace# (str/split #"\.") last)
+                      :run-up! (resolve (symbol (str namespace# "/run-up!")))
+                      :run-down! (resolve (symbol (str namespace# "/run-down!")))}))))))

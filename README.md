@@ -120,3 +120,15 @@ As an example the following state would execute just fine:
 ```
 
 Notice the migration with id `"2"` is missing from the provided set, simulating it having been cleaned up. Once the op-log has moved on to `"4"`, the migration with id `"3"` could also theoretically be removed.
+
+## GraalVM Native-Image Compatibility
+
+This tool is fully compatible with graalvm native-image. To properly structure your project you need to make sure your migrations are analysed at build time.
+
+You can either explicitly require each migration and use the `ns` loader or you can use the `fs` loader from a def:
+
+```clj
+(def migrations 
+  "Preload migrations to ensure that the `require` statements are analysed during native-image compilation"
+  (loaders.fs/load-migrations! "migrations")) ;; where the folder `migrations` is on your classpath.
+```
