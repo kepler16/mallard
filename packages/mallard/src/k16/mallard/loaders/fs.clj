@@ -20,13 +20,11 @@
        file-seq
        (filter #(.isFile ^java.io.File %))
        (filter #(str/ends-with? (.getName ^java.io.File %) ".clj"))
-       (map (fn [file]
-              {:path (.getPath ^java.io.File file)
-               :namespace (file->ns file)}))
-       (sort-by :path)
+       (map file->ns)
+       sort
        vec))
 
-(defmacro load-migration-files!
+(defmacro load-migrations!
   "Given a file or resource directory path attempt to load all files found within as migrations.
 
   This is implemented as a macro to allow preloading migrations during native-image compilation. This

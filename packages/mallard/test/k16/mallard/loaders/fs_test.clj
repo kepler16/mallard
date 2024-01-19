@@ -6,7 +6,7 @@
 
 (deftest fs-loader-test
   (testing "It should load migrations from disk in the correct order"
-    (let [migrations (loaders.fs/load-migrations! "test/fixtures/migrations")]
+    (let [migrations (loaders.fs/load-migrations! "fixtures/migrations")]
       (is (match? [{:id "1-migration"
                     :run-up! (requiring-resolve 'fixtures.migrations.1-migration/run-up!)
                     :run-down! (requiring-resolve 'fixtures.migrations.1-migration/run-down!)}
