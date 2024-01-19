@@ -6,6 +6,8 @@
    [tick.core :as t]
    [taoensso.timbre :as log]))
 
+(set! *warn-on-reflection* true)
+
 (def ?Migration
   [:map
    [:id :string]
@@ -46,14 +48,22 @@
         [])
        last))
 
+(defn- index-of [item coll]
+  (let [index
+        (->> coll
+             (map-indexed vector)
+             (some (fn [[idx val]]
+                     (when (= val item) idx))))]
+    (if index index -1)))
+
 (defn- get-index
   "Determines the index of the currently applied index in the given collection of migrations"
   [op-log migrations]
   (if op-log
     (let [last-run-id (project-op-log op-log)
-          index (as-> migrations $
-                  (map :id $)
-                  (.indexOf $ last-run-id))]
+          index (->> migrations
+                     (map :id)
+                     (index-of last-run-id))]
 
       (if (and (not (nil? last-run-id)) (= index -1))
         (throw (ex-info (str "The last run migration " last-run-id " was not found in the given set of migrations") {}))

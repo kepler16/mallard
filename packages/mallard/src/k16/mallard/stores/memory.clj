@@ -4,6 +4,8 @@
   (:import
    [java.util UUID]))
 
+(set! *warn-on-reflection* true)
+
 (defn create-memory-datastore
   "Create an in-memory datastore. This is useful for tests but should not be
    used in practice."

@@ -2,8 +2,10 @@
   (:require
    [tick.core :as t]))
 
+(set! *warn-on-reflection* true)
+
 (def inst-codec
-  {:encode/json #(.toString %)
+  {:encode/json #(.toString ^java.time.Instant %)
    :decode/json #(t/instant %)})
 
 (def ?instant

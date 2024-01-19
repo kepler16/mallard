@@ -6,6 +6,8 @@
    [k16.mallard.datastore :as datastore.api]
    [k16.mallard.loaders.fs :as loaders.fs]))
 
+(set! *warn-on-reflection* true)
+
 (def ?Props
   [:map
    [:migrations-dir :string]

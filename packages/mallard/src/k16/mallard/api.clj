@@ -3,6 +3,8 @@
    [k16.mallard.executor :as executor]
    [k16.mallard.loaders.fs :as loaders.fs]))
 
+(set! *warn-on-reflection* true)
+
 (defn run-up!
   "Execute all unapplied migrations"
   [props]

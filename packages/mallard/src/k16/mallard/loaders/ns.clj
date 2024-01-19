@@ -2,6 +2,8 @@
   (:require
    [clojure.string :as str]))
 
+(set! *warn-on-reflection* true)
+
 (defn load-migrations!
   "Dynamically require all given namespaces as migration files."
   [namespaces]

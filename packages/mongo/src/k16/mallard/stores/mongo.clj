@@ -8,7 +8,11 @@
    [promesa.core :as p]
    [promesa.exec :as exec]
    [taoensso.timbre :as log]
-   [tick.core :as t]))
+   [tick.core :as t])
+  (:import
+   [com.mongodb.client.result UpdateResult]))
+
+(set! *warn-on-reflection* true)
 
 (defn- create-lock
   "Creates a self-refreshing lock using task scheduling"
@@ -34,7 +38,7 @@
                                                     :locked_at active-lock-ts}
                                                    {:$set {:locked_at now}})]
 
-                         (when (= 0 (.getModifiedCount res))
+                         (when (= 0 (.getModifiedCount ^UpdateResult res))
                            (throw (ex-info "Failed to refresh lock" {})))
 
                          (swap! lock #(assoc % :locked-at now))
@@ -83,7 +87,7 @@
                                                      {:locked_at {:$lte expired-ts}}]}]}
                                       {:$set {:locked_at now}})]
 
-            (when (= 0 (.getModifiedCount res))
+            (when (= 0 (.getModifiedCount ^UpdateResult res))
               (throw (ex-info "Lock conflict. Could not acquire lock as it is already held by another process" {}))))
 
           (create-lock (assoc params :locked-at now))))

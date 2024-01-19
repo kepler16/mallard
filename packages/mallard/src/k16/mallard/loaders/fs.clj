@@ -4,6 +4,8 @@
    [clojure.java.io :as io]
    [clojure.string :as str]))
 
+(set! *warn-on-reflection* true)
+
 (defn- file->ns
   "Extract clojure ns name from a file"
   [file]
@@ -16,11 +18,11 @@
 (defn- resolve-migration-files [dir]
   (->> (io/file dir)
        file-seq
-       (filter #(.isFile %))
-       (filter #(str/ends-with? (.getName %) ".clj"))
+       (filter #(.isFile ^java.io.File %))
+       (filter #(str/ends-with? (.getName ^java.io.File %) ".clj"))
        (map (fn [file]
               {:file file
-               :path (.getPath file)
+               :path (.getPath ^java.io.File file)
                :ns (file->ns file)}))
        (sort-by :path)))
 
