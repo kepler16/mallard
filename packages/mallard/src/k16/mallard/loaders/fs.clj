@@ -13,7 +13,7 @@
        (re-find #"^\(ns\s+([^\s);]+)")
        second))
 
-(defn- resolve-migration-files [dir]
+(defn resolve-migration-files [dir]
   (->> (or (io/resource dir)
            (io/file dir))
        io/file
@@ -31,12 +31,15 @@
   also allows loading of migrations when they are bundled as resources within a jar as the full resource
   paths are known up front."
   [dir]
-  (let [namespaces (resolve-migration-files dir)]
-    `(do (doseq [namespace# ~namespaces]
-           (require (symbol namespace#)))
+  (let [namespaces (try (resolve-migration-files dir)
+                        (catch Exception _))]
+    `(let [namespaces# (or ~namespaces
+                           (resolve-migration-files ~dir))]
+       (doseq [namespace# namespaces#]
+         (require (symbol namespace#)))
 
-         (->> ~namespaces
-              (map (fn [namespace#]
-                     {:id (-> namespace# (str/split #"\.") last)
-                      :run-up! (resolve (symbol (str namespace# "/run-up!")))
-                      :run-down! (resolve (symbol (str namespace# "/run-down!")))}))))))
+       (->> namespaces#
+            (map (fn [namespace#]
+                   {:id (-> namespace# (str/split #"\.") last)
+                    :run-up! (resolve (symbol (str namespace# "/run-up!")))
+                    :run-down! (resolve (symbol (str namespace# "/run-down!")))}))))))
