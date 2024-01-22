@@ -4,21 +4,30 @@
   (:require
    [k16.mallard.api :as api]
    [k16.mallard.datastore :as datastore.api]
-   [k16.mallard.loaders.fs :as loaders.fs]))
+   [k16.mallard.loaders.fs :as loaders.fs]
+   [k16.mallard.executor :as executor]))
 
 (set! *warn-on-reflection* true)
 
 (def ?Props
-  [:map
-   [:migrations-dir :string]
-   [:store datastore.api/?DataStore]
-   [:context :any]])
+  [:and
+   [:map
+    [:store datastore.api/?DataStore]
+    [:context :any]]
+
+   [:or
+    [:map
+     [:migrations executor/?Migrations]]
+
+    [:map
+     [:migrations-dir :string]]]])
 
 (def run-migrations-component!
   {:gx/start
    {:gx/processor (fn [{:keys [props]}]
-                    (let [{:keys [store context migrations-dir]} props]
+                    (let [{:keys [store context migrations migrations-dir]} props]
                       (api/run-up! {:store store
                                     :context context
-                                    :migrations (loaders.fs/load-migrations! migrations-dir)})))
+                                    :migrations (or migrations
+                                                    (loaders.fs/load-migrations! migrations-dir))})))
     :gx/props-schema ?Props}})
