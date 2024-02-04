@@ -17,7 +17,7 @@
 
    [:or
     [:map
-     [:migrations executor/?Migrations]]
+     [:migrations executor/?Operations]]
 
     [:map
      [:migrations-dir :string]]]])

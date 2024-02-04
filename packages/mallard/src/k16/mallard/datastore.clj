@@ -4,17 +4,17 @@
 
 (set! *warn-on-reflection* true)
 
-(def inst-codec
+(def ^:private inst-codec
   {:encode/json #(.toString ^java.time.Instant %)
    :decode/json #(t/instant %)})
 
-(def ?instant
+(def ^:private ?instant
   [:fn (merge inst-codec {:error/message "Should be an #instant"}) t/instant?])
 
 (def ?Direction
-  [:or [:= :up] [:= :down]])
+  [:enum :up :down])
 
-(def ?Operation
+(def ?OpLogEntry
   [:map {:closed true}
    [:id :string]
    [:direction ?Direction]
@@ -23,8 +23,8 @@
 
 (def ?State
   [:map
-   [:log {:description "A log of all migration operations that have been executed"}
-    [:sequential ?Operation]]])
+   [:log {:description "A log of all operations that have been executed"}
+    [:sequential ?OpLogEntry]]])
 
 (defprotocol DataStore
   "Protocol for a data store that can hold the migration log and
