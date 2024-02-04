@@ -2,11 +2,11 @@
 
 This is a Clojure migrations framework which aims to provide a generalized and versatile mechanism for running arbitrary migration operations. It has the following goals:
 
-+ Allow running arbitrary migrations as code.
-+ Allow storing migration state anywhere, including in a separate store to the data being migrated.
-+ Handle locking to prevent multiple migration operations occurring at the same time.
-+ Keep a log of all migration operations that have been ever been executed, including rollbacks, and record their date and timing information.
-+ Allow 'compressing' migrations or cleaning up by removing previously applied migrations.
++ Allow running arbitrary operations as code.
++ Allow storing migration state anywhere including in a store separate to the data being operated on.
++ Have a mechanism for locking to prevent multiple operations from occurring at the same time.
++ Keep a log of all operations that have ever been executed - including rollbacks - and record their date and timing information.
++ Allow deleting operations after they have been applied.
 
 ## Quick start
 
@@ -96,11 +96,11 @@ The executor simply finds all unapplied migrations for the desired 'direction' a
 
 ## Compression/Cleanup
 
-Migrations are once-off operations applied at a point in time, while your application itself changes through time. This makes keeping old migration code around often infeasible as it will often be referencing code in your application which has changed or been removed, or it is applying to data structures which have completely changed or also been removed.
+Migrations are generally once-off operations applied at a point in time, while your application itself changes through time. This makes keeping old migration code around often infeasible as it will often be referencing code in your application which has changed or been removed, or it is applying to data structures which have completely changed or also been removed.
 
 Some migrations scripts, such as index creation/modification, we _do_ want to keep around as they are useful to apply when setting up a database (either during development on a new machine, or when your application is often deployed to fresh infrastructure). However these kinds of migrations we might want to 'compress' into a single 'init' or 'seed' migration. For example, when indexes are added/removed/changed this would need to happen in a new migration - but once this has been applied everywhere it might make sense to 'merge' the code back into an original 'init' migration.
 
-Both types of cleanup are indirectly supported by this executor so long as you keep in mind how it operates. The executor always needs the last applied migration (as derived from the op-log) to be present in the provided set of migrations. This is what is used as a reference point for where it should resume. So long as this referential migration is not dropped, any migrations before or after can be changed as you wish.
+Both types of cleanup are indirectly supported by this executor. Any previously applied operations can be deleted and the executor should be able to figure out from where to continue. The only thing to be careful with is renaming operations - **do not rename an operation if you do not want it to be applied again**.
 
 As an example the following state would execute just fine:
 
@@ -118,8 +118,6 @@ As an example the following state would execute just fine:
 (find-unapplied op-log migrations :up) ;; => [{:id "4"}]
 (find-unapplied op-log migrations :down) ;; => [{:id "1"}]
 ```
-
-Notice the migration with id `"2"` is missing from the provided set, simulating it having been cleaned up. Once the op-log has moved on to `"4"`, the migration with id `"3"` could also theoretically be removed.
 
 ## GraalVM Native-Image Compatibility
 
