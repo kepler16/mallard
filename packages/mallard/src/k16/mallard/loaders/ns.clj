@@ -4,8 +4,8 @@
 
 (set! *warn-on-reflection* true)
 
-(defn load-migrations!
-  "Dynamically require all given namespaces as migration files."
+(defn load!
+  "Dynamically require all given namespaces as operation files."
   [namespaces]
   (->> namespaces
        (map (fn [ns']

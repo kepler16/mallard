@@ -33,11 +33,11 @@
       (is (= ExceptionInfo (type ex)))
       (is (= "Invalid arguments provided" (ex-message ex)))
       (is (= {:errors {:direction ["missing required key"],
-                       :migrations ["missing required key"],
+                       :operations ["missing required key"],
                        :store ["missing required key"]}}
              (ex-data ex))))
 
-    (let [ex (try (executor/execute! {:migrations :wrong
+    (let [ex (try (executor/execute! {:operations :wrong
                                       :direction :left
                                       :store "incorrect store"
                                       :limit 0})
@@ -46,7 +46,7 @@
       (is (= ExceptionInfo (type ex)))
       (is (= "Invalid arguments provided" (ex-message ex)))
       (is (= {:errors {:direction ["should be either :up or :down"],
-                       :migrations ["should be a sequence of operations"],
+                       :operations ["should be a sequence of operations"],
                        :store ["should Implement DataStore protocol"],
                        :limit ["should be at least 1"]}}
              (ex-data ex))))))
@@ -68,16 +68,16 @@
       (executor/execute! {:store store
                           :context context
                           :direction :up
-                          :migrations migs})
+                          :operations migs})
       (executor/execute! {:store store
                           :context context
                           :direction :down
-                          :migrations migs}))))
+                          :operations migs}))))
 
 (deftest single-execution-test
   (let [store (stores.memory/create-memory-datastore)
         op-log (executor/execute! {:store store
-                                   :migrations migrations
+                                   :operations migrations
                                    :direction :up
                                    :limit 1})]
 
@@ -93,7 +93,7 @@
 (deftest multi-execution-test
   (let [store (stores.memory/create-memory-datastore)
         op-log (executor/execute! {:store store
-                                   :migrations migrations
+                                   :operations migrations
                                    :direction :up})]
 
     (is (= 3 (count op-log)))
@@ -109,7 +109,7 @@
 
     (testing "Undoing the last migration"
       (let [op-log (executor/execute! {:store store
-                                       :migrations migrations
+                                       :operations migrations
                                        :direction :down
                                        :limit 1})]
 
@@ -132,7 +132,7 @@
 
     (testing "Rerunning the last migration"
       (let [op-log (executor/execute! {:store store
-                                       :migrations migrations
+                                       :operations migrations
                                        :direction :up
                                        :limit 1})]
 
@@ -155,7 +155,7 @@
                                              :finished_at (t/now)}]})
 
     (let [op-log (executor/execute! {:store store
-                                     :migrations migrations
+                                     :operations migrations
                                      :direction :up
                                      :limit 1})]
 
@@ -174,7 +174,7 @@
                                              :finished_at (t/now)}]})
 
     (let [ex (try (executor/execute! {:store store
-                                      :migrations []
+                                      :operations []
                                       :direction :down
                                       :limit 1})
                   (catch Exception e e))]

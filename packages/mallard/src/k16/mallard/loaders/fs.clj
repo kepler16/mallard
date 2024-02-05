@@ -13,7 +13,7 @@
        (re-find #"^\(ns\s+([^\s);]+)")
        second))
 
-(defn resolve-migration-files [dir]
+(defn resolve-operation-files [dir]
   (->> (or (io/resource dir)
            (io/file dir))
        io/file
@@ -24,17 +24,17 @@
        sort
        vec))
 
-(defmacro load-migrations!
-  "Given a file or resource directory path attempt to load all files found within as migrations.
+(defmacro load!
+  "Given a file or resource directory path attempt to load all files found within as operations.
 
-  This is implemented as a macro to allow preloading migrations during native-image compilation. This
-  also allows loading of migrations when they are bundled as resources within a jar as the full resource
+  This is implemented as a macro to allow preloading operations during native-image compilation. This
+  also allows loading of operations when they are bundled as resources within a jar as the full resource
   paths are known up front."
   [dir]
-  (let [namespaces (try (resolve-migration-files dir)
+  (let [namespaces (try (resolve-operation-files dir)
                         (catch Exception _))]
     `(let [namespaces# (or ~namespaces
-                           (resolve-migration-files ~dir))]
+                           (resolve-operation-files ~dir))]
        (doseq [namespace# namespaces#]
          (require (symbol namespace#)))
 

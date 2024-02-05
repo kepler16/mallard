@@ -17,17 +17,17 @@
 
    [:or
     [:map
-     [:migrations executor/?Operations]]
+     [:operations executor/?Operations]]
 
     [:map
-     [:migrations-dir :string]]]])
+     [:load-dir :string]]]])
 
-(def run-migrations-component!
+(def run!
   {:gx/start
    {:gx/processor (fn [{:keys [props]}]
-                    (let [{:keys [store context migrations migrations-dir]} props]
+                    (let [{:keys [store context operations load-dir]} props]
                       (api/run-up! {:store store
                                     :context context
-                                    :migrations (or migrations
-                                                    (loaders.fs/load-migrations! migrations-dir))})))
+                                    :operations (or operations
+                                                    (loaders.fs/load! load-dir))})))
     :gx/props-schema ?Props}})
