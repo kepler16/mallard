@@ -26,18 +26,18 @@
   [:map
    [:context {:optional true} [:maybe :any]]
    [:store datastore.api/?DataStore]
-   [:migrations ?Operations]
+   [:operations ?Operations]
    [:limit {:optional true} [:int {:min 1}]]
    [:direction [:enum :up :down]]])
 
 (defn- index-by [key-fn col]
   (->> col
-       (map (fn [migration]
-              [(key-fn migration) migration]))
+       (map (fn [item]
+              [(key-fn item) item]))
        (into {})))
 
 (defn- project-op-log
-  "Reduces over the op-log to project the concrete sequence of currently applied migrations ids.
+  "Reduces over the op-log to project the concrete sequence of currently applied operation ids.
   
   The op-log contains a sequence of `:up` and `:down` operations which can be reduced down to a
   sequence of only `:up` operation ids
@@ -59,7 +59,7 @@
        :down (if (= (:id op) (last operations))
                (pop operations)
                (throw (ex-info (str "Error reprocessing op-log. A :down operation did not "
-                                    "follow an :up migration of the same id")
+                                    "follow an :up operation of the same id")
                                {:last-op (last operations)
                                 :current-op (:id op)})))))
    []
@@ -104,8 +104,8 @@
 (defn- find-unapplied
   "Return an ordered set of operations based on the current op-log state and desired `:direction`.
   
-  - If the direction is `:up` this will return the remaining set of *unapplied* migrations.
-  - If the direction is `:down` this will return the *applied* migrations in reverse order."
+  - If the direction is `:up` this will return the remaining set of *unapplied* operations.
+  - If the direction is `:down` this will return the *applied* operations in reverse order."
   [op-log operations direction]
   (let [{:keys [applied unapplied]} (derive-active-state op-log operations)]
     (case direction
@@ -113,11 +113,11 @@
       :down (reverse applied))))
 
 (defn- execute-one!
-  "Execute a single migration and return an ?OpLogEntry to be appended to the op-log."
+  "Execute a single operation and return an ?OpLogEntry to be appended to the op-log."
   [context operation direction]
   (let [{:keys [id run-up! run-down!]} operation
         ts (t/now)]
-    (log/info (str "Executing migration " id " [" direction "]"))
+    (log/info (str "Executing operation " id " [" direction "]"))
 
     (case direction
       :up (run-up! context)
@@ -131,16 +131,16 @@
      :finished_at (t/now)}))
 
 (defn execute!
-  "Execute the given migrations and return the new log of operations. This will handle locking
-   and will mutate the datastore with the changing op-log as migrations are applied."
-  [{:keys [context store migrations direction limit] :as props}]
+  "Execute the given operations and append to the op-log which is then returned. This will handle locking
+   and will mutate the datastore with the changing op-log as operations are applied."
+  [{:keys [context store operations direction limit] :as props}]
   (when-not (m/validate ?ExecuteProps props)
     (throw (ex-info "Invalid arguments provided"
                     {:errors (me/humanize (m/explain ?ExecuteProps props))})))
 
   (let [state (datastore.api/load-state store)
         op-log (atom (or (:log state) []))
-        unapplied (cond-> (find-unapplied (:log state) migrations direction)
+        unapplied (cond-> (find-unapplied (:log state) operations direction)
                     limit ((partial take limit)))
         lock (datastore.api/acquire-lock! store)]
 

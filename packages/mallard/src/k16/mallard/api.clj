@@ -6,44 +6,44 @@
 (set! *warn-on-reflection* true)
 
 (defn run-up!
-  "Execute all unapplied migrations"
+  "Execute all unapplied operations"
   [props]
   (executor/execute! (assoc props :direction :up)))
 
 (defn run-down!
-  "Rollback all applied migrations"
+  "Rollback all applied operations"
   [props]
   (executor/execute! (assoc props :direction :down)))
 
 (defn run-next!
-  "Run the next unapplied migration"
+  "Run the next unapplied operation"
   [props]
   (executor/execute! (merge props {:direction :up
                                    :limit 1})))
 
 (defn undo!
-  "Rollback the last applied migration"
+  "Rollback the last applied operation"
   [props]
   (executor/execute! (merge props {:direction :down
                                    :limit 1})))
 
 (defn redo!
-  "Reapply the last applied migration. This will roll it back first"
+  "Reapply the last applied operation. This will roll it back first"
   [props]
   (undo! props)
   (run-next! props))
 
 (defn run
-  "A run function to be used in a Deps.edn project to execute migrations using the file loader.
+  "A run function to be used in a Deps.edn project to execute operations using the file loader.
    
    :init-store! - Should be given a symbol that resolves to a datastore init function.
-   :migrations-dir - should be a resource path to a directory containing migration files that will
-                     be loaded using the file loader.
+   :load-dir - should be a resource path to a directory containing operation files that will
+               be loaded using the file loader.
    :action - should be given an action to perform. One of #{:up :down :next :undo :redo}"
   [{create-ctx-fn :create-ctx!
     create-store-fn :create-store!
     shutdown-fn :shutdown!
-    migrations-dir :migrations-dir
+    load-dir :load-dir
     action :action}]
 
   (let [create-store! (requiring-resolve create-store-fn)
@@ -52,7 +52,7 @@
                   (create-ctx))
         store (create-store! context)
         props {:context context
-               :migrations (loaders.fs/load-migrations! migrations-dir)
+               :operations (loaders.fs/load! load-dir)
                :store store}]
 
     (case action
