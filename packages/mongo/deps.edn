@@ -12,9 +12,7 @@
 
         metosin/malli {:mvn/version "0.13.0"}
         funcool/promesa {:mvn/version "11.0.678"}
-        tick/tick {:mvn/version "0.7.5"}
-
-        com.taoensso/timbre {:mvn/version "6.2.2"}}
+        tick/tick {:mvn/version "0.7.5"}}
 
  :aliases {:build {:deps {local/build {:local/root "../../build"}}
                    :ns-default build}

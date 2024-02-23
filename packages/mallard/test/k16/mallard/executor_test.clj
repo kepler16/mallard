@@ -5,16 +5,9 @@
    [k16.mallard.executor :as executor]
    [k16.mallard.stores.memory :as stores.memory]
    [matcher-combinators.test]
-   [taoensso.timbre :as log]
    [tick.core :as t])
   (:import
    [clojure.lang ExceptionInfo]))
-
-(defn- disable-logs [test]
-  (log/set-config! {})
-  (test))
-
-(use-fixtures :once disable-logs)
 
 (def migrations
   [{:id "1"

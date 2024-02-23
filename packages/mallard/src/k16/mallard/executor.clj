@@ -1,10 +1,10 @@
 (ns k16.mallard.executor
   (:require
    [k16.mallard.datastore :as datastore.api]
+   [k16.mallard.log :as log]
    [malli.core :as m]
    [malli.error :as me]
-   [tick.core :as t]
-   [taoensso.timbre :as log]))
+   [tick.core :as t]))
 
 (set! *warn-on-reflection* true)
 
@@ -146,8 +146,8 @@
 
     (try
       (if (pos? (count unapplied))
-        (log/info (str "Running " (count unapplied) " operations"))
-        (log/info "No operations to run"))
+        (log/info (str "Running " (count unapplied) " operations [" direction "]"))
+        (log/info "No unapplied operations to run"))
 
       (doseq [{:keys [id operation]} unapplied]
         (when (not operation)

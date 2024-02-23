@@ -130,3 +130,7 @@ You can either explicitly require each migration and use the `ns` loader or you 
   "Preload migrations to ensure that the `require` statements are analysed during native-image compilation"
   (loaders.fs/load-migrations! "migrations")) ;; where the folder `migrations` is on your classpath.
 ```
+
+## Roadmap
+
++ Provide some way to run a migration on the migration state.
