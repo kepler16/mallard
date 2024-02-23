@@ -6,8 +6,7 @@
    [k16.mallard.test.mongo :as test.mongo]
    [matcher-combinators.test]
    [promesa.core :as p]
-   [tick.core :as t]
-   [taoensso.timbre]))
+   [tick.core :as t]))
 
 (def ^:dynamic *mongo* nil)
 
