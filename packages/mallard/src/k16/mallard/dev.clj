@@ -4,7 +4,6 @@
   (:require
    [k16.mallard.api :as api]
    [k16.mallard.datastore :as datastore.api]
-   [k16.mallard.loaders.fs :as loaders.fs]
    [k16.mallard.executor :as executor]))
 
 (set! *warn-on-reflection* true)
@@ -17,17 +16,17 @@
 
    [:or
     [:map
-     [:operations executor/?Operations]]
-
-    [:map
-     [:load-dir :string]]]])
+     [:operations
+      [:or executor/?Operations
+       [:=> [:cat] executor/?Operations]]]]]])
 
 (def run!
   {:gx/start
    {:gx/processor (fn [{:keys [props]}]
-                    (let [{:keys [store context operations load-dir]} props]
+                    (let [{:keys [store context operations]} props]
                       (api/run-up! {:store store
                                     :context context
-                                    :operations (or operations
-                                                    (loaders.fs/load! load-dir))})))
+                                    :operations (if (fn? operations)
+                                                  (operations)
+                                                  operations)})))
     :gx/props-schema ?Props}})
