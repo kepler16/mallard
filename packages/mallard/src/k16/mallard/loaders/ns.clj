@@ -4,12 +4,15 @@
 
 (set! *warn-on-reflection* true)
 
-(defn load!
+(defmacro load!
   "Dynamically require all given namespaces as operation files."
   [namespaces]
-  (->> namespaces
-       (map (fn [ns']
-              (require ns')
-              {:id (-> (name ns') (str/split #"\.") last)
-               :run-up! (ns-resolve ns' 'run-up!)
-               :run-down! (ns-resolve ns' 'run-down!)}))))
+  `(do
+     (doseq [namespace# ~namespaces]
+       (require namespace#))
+
+     (->> ~namespaces
+          (map (fn [namespace#]
+                 {:id (-> namespace# str (str/split #"\.") last)
+                  :run-up! (resolve (symbol (str namespace# "/run-up!")))
+                  :run-down! (resolve (symbol (str namespace# "/run-down!")))})))))

@@ -33,17 +33,20 @@
   (undo! props)
   (run-next! props))
 
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn run
   "A run function to be used in a Deps.edn project to execute operations using the file loader.
    
    :init-store! - Should be given a symbol that resolves to a datastore init function.
-   :load-dir - should be a resource path to a directory containing operation files that will
-               be loaded using the file loader.
-   :action - should be given an action to perform. One of #{:up :down :next :undo :redo}"
+   :load-dir    - should be a resource path to a directory containing operation files that will
+                  be loaded using the file loader.
+   :operations  - Should be a symbol resolving to a set of operations
+   :action      - should be given an action to perform. One of #{:up :down :next :undo :redo}"
   [{create-ctx-fn :create-ctx!
     create-store-fn :create-store!
     shutdown-fn :shutdown!
     load-dir :load-dir
+    operations :operations
     action :action}]
 
   (let [create-store! (requiring-resolve create-store-fn)
@@ -52,7 +55,8 @@
                   (create-ctx))
         store (create-store! context)
         props {:context context
-               :operations (loaders.fs/load! load-dir)
+               :operations (or operations
+                               (loaders.fs/load! load-dir))
                :store store}]
 
     (case action
