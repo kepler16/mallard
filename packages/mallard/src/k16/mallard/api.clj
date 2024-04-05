@@ -54,9 +54,13 @@
         context (when-let [create-ctx (some-> create-ctx-fn (requiring-resolve))]
                   (create-ctx))
         store (create-store! context)
+        operations (when operations
+                     (var-get (requiring-resolve operations)))
         props {:context context
                :operations (or operations
-                               (loaders.fs/load! load-dir))
+                               (when load-dir
+                                 (loaders.fs/load! load-dir))
+                               [])
                :store store}]
 
     (case action
