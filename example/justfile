@@ -1,0 +1,2 @@
+migrate action="up":
+    clojure -M -m k16.mallard.example.migrate {{ action }}
