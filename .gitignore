@@ -8,3 +8,5 @@
 .nrepl-port
 
 target
+
+deps.local.edn

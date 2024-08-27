@@ -1,8 +1,8 @@
-test *ARGS:
-    clojure -T:kmono run :exec "\"just test\"" {{ ARGS }}
+test *args:
+    kmono run --run-in-order false --skip-unchanged true -M :test
 
-build *ARGS:
-    clojure -T:kmono run :exec :build {{ ARGS }}
+build *args:
+    clojure -T:build build {{ args }}
 
-release *ARGS:
-    clojure -T:kmono run :exec :release {{ ARGS }}
+release *args:
+    clojure -T:build release {{args}}

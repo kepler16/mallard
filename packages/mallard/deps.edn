@@ -1,18 +1,9 @@
-{:kmono/config {:group com.kepler16
-                :artifact mallard
-                :build-cmd "just build"
-                :release-cmd "just release"}
-
- :paths ["src"]
+{:kmono/package {:name mallard}
 
  :deps {tick/tick {:mvn/version "0.7.5"}
-        metosin/malli {:mvn/version "0.13.0"}}
+        metosin/malli {:mvn/version "0.16.3"}}
 
- :aliases {:build {:deps {local/build {:local/root "../../build"}}
-                   :ns-default build}
-
-           :test {:extra-deps {lambdaisland/kaocha {:mvn/version "1.87.1366"}
-                               nubank/matcher-combinators {:mvn/version "3.8.8"}}
+ :aliases {:test {:extra-deps {lambdaisland/kaocha {:mvn/version "1.91.1392"}
+                               nubank/matcher-combinators {:mvn/version "3.9.1"}}
                   :extra-paths ["test"]
-                  :exec-fn kaocha.runner/exec-fn
-                  :exec-args {}}}}
+                  :main-opts ["-m" "kaocha.runner" "-c" "../../tests.edn"]}}}
