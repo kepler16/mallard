@@ -1,7 +1,6 @@
 (ns k16.mallard.api
   (:require
-   [k16.mallard.executor :as executor]
-   [k16.mallard.loaders.fs :as loaders.fs]))
+   [k16.mallard.executor :as executor]))
 
 (set! *warn-on-reflection* true)
 
@@ -35,43 +34,21 @@
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn run
-  "A run function to be used in a Deps.edn project to execute operations using the file loader.
-   
-   :init-store! - Should be given a symbol that resolves to a datastore init function.
-   :load-dir    - should be a resource path to a directory containing operation files that will
-                  be loaded using the file loader.
-   :operations  - Should be a symbol resolving to a set of operations
-   :action      - should be given an action to perform. One of #{:up :down :next :undo :redo}"
-  [{create-ctx-fn :create-ctx!
-    create-store-fn :create-store!
-    shutdown-fn :shutdown!
-    load-dir :load-dir
-    operations :operations
-    action :action}]
+  "A run function designed to be called from an applications -main fn.
 
-  (let [create-store! (requiring-resolve create-store-fn)
-        shutdown! (when shutdown-fn (requiring-resolve shutdown-fn))
-        context (when-let [create-ctx (some-> create-ctx-fn (requiring-resolve))]
-                  (create-ctx))
-        store (create-store! context)
-        operations (when operations
-                     (var-get (requiring-resolve operations)))
-        props {:context context
-               :operations (or operations
-                               (when load-dir
-                                 (loaders.fs/load! load-dir))
-                               [])
-               :store store}]
+  Accepts executor params (see below) as well as process argv arguments.
 
-    (case action
-      :up (run-up! props)
-      :down (run-down! props)
-      :next (run-next! props)
-      :undo (undo! props)
-      :redo (redo! props))
+  Available arguments are `[up, down, next, undo, redo]`.
 
-    (when shutdown!
-      (try
-        (shutdown! context store)
-        (catch Exception _ (System/exit 1))
-        (finally (System/exit 0))))))
+  Executor `props` should be provided containing:
+
+  - :context - context map to be passed to executing operations
+  - :store - a DataStore implementation
+  - :operations - a set of operations to be executed"
+  [props args]
+  (condp = (keyword (first args))
+    :up (run-up! props)
+    :down (run-down! props)
+    :next (run-next! props)
+    :undo (undo! props)
+    :redo (redo! props)))
