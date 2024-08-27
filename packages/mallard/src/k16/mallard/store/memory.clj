@@ -1,18 +1,15 @@
-(ns k16.mallard.stores.memory
+(ns k16.mallard.store.memory
   (:require
-   [k16.mallard.datastore :as datastore.api])
-  (:import
-   [java.util UUID]))
+   [k16.mallard.store :as mallard.store]))
 
-(set! *warn-on-reflection* true)
+(defn create-datastore
+  "Create an in-memory datastore.
 
-(defn create-memory-datastore
-  "Create an in-memory datastore. This is useful for tests but should not be
-   used in practice."
+  This is useful for tests but should not be used in a real application."
   []
   (let [state (atom nil)
         lock (atom nil)]
-    (reify datastore.api/DataStore
+    (reify mallard.store/DataStore
       (load-state [_]
         @state)
       (save-state! [_ new-state]
@@ -20,7 +17,7 @@
       (acquire-lock! [_]
         (when @lock
           (throw (ex-info "A lock is already being held" {:lock @lock})))
-        (swap! lock (fn [_] (.toString (UUID/randomUUID)))))
+        (swap! lock (fn [_] (str (random-uuid)))))
       (release-lock! [_ lock-id]
         (when (not= @lock lock-id)
           (throw (ex-info "Trying to release an unknown lock" {:lock lock-id

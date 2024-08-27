@@ -1,4 +1,4 @@
-(ns k16.mallard.loaders.ns
+(ns k16.mallard.loader.ns
   (:require
    [clojure.string :as str]))
 

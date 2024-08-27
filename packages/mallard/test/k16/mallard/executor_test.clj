@@ -1,9 +1,9 @@
 (ns k16.mallard.executor-test
   (:require
-   [clojure.test :refer [deftest is testing use-fixtures]]
-   [k16.mallard.datastore :as datastore.api]
+   [clojure.test :refer [deftest is testing]]
+   [k16.mallard.store :as datastore.api]
    [k16.mallard.executor :as executor]
-   [k16.mallard.stores.memory :as stores.memory]
+   [k16.mallard.store.memory :as store.memory]
    [matcher-combinators.test]
    [tick.core :as t])
   (:import
@@ -47,7 +47,7 @@
 (deftest executor-context-test
   (testing "Context is passed to runers"
     (let [context {:hello "world"}
-          store (stores.memory/create-memory-datastore)
+          store (store.memory/create-datastore)
           migs [{:id "1"
                  :run-up! (fn [ctx]
                             (is (= ctx context)))
@@ -68,7 +68,7 @@
                           :operations migs}))))
 
 (deftest single-execution-test
-  (let [store (stores.memory/create-memory-datastore)
+  (let [store (store.memory/create-datastore)
         op-log (executor/execute! {:store store
                                    :operations migrations
                                    :direction :up
@@ -84,7 +84,7 @@
     (is (= {:log op-log} (datastore.api/load-state store)))))
 
 (deftest multi-execution-test
-  (let [store (stores.memory/create-memory-datastore)
+  (let [store (store.memory/create-datastore)
         op-log (executor/execute! {:store store
                                    :operations migrations
                                    :direction :up})]
@@ -93,7 +93,7 @@
     (is (= ["1" "2" "3"] (map :id op-log)))))
 
 (deftest down-migration-test
-  (let [store (stores.memory/create-memory-datastore)]
+  (let [store (store.memory/create-datastore)]
 
     (datastore.api/save-state! store {:log [{:id "1"
                                              :direction :up
@@ -112,7 +112,7 @@
                (map #(select-keys % [:id :direction]) op-log)))))))
 
 (deftest rerun-down-migration-test
-  (let [store (stores.memory/create-memory-datastore)]
+  (let [store (store.memory/create-datastore)]
 
     (datastore.api/save-state! store {:log [{:id "1"
                                              :direction :up
@@ -136,7 +136,7 @@
                (map #(select-keys % [:id :direction]) op-log)))))))
 
 (deftest run-up-out-of-order-test
-  (let [store (stores.memory/create-memory-datastore)]
+  (let [store (store.memory/create-datastore)]
 
     (datastore.api/save-state! store {:log [{:id "1"
                                              :direction :up
@@ -159,7 +159,7 @@
              (map #(select-keys % [:id :direction]) op-log))))))
 
 (deftest run-down-missing-migration-test
-  (let [store (stores.memory/create-memory-datastore)]
+  (let [store (store.memory/create-datastore)]
 
     (datastore.api/save-state! store {:log [{:id "1"
                                              :direction :up

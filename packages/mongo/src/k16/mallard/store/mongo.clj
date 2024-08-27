@@ -1,6 +1,6 @@
-(ns k16.mallard.stores.mongo
+(ns k16.mallard.store.mongo
   (:require
-   [k16.mallard.datastore :as datastore.api]
+   [k16.mallard.store :as mallard.store]
    [malli.core :as m]
    [malli.error :as me]
    [malli.transform :as mt]
@@ -10,7 +10,7 @@
    [k16.mallard.log :as log]
    [tick.core :as t])
   (:import
-   [com.mongodb.client.result UpdateResult]))
+   com.mongodb.client.result.UpdateResult))
 
 (set! *warn-on-reflection* true)
 
@@ -53,20 +53,28 @@
     (schedule-refresh!)
     lock))
 
-(defn create-mongo-datastore
+(def ?Props
+  [:map
+   [:collection :string]
+   [:lock-timeout-ms {:optional true} :int]
+   [:refresh-ms {:optional true} :int]
+   [:mongo :any]])
+
+(defn create-datastore
   "Create a MongoDB backed datastore that handles locking and log storage. Stores the state
    in a document with the id `state` and locks in a document with the id `lock`"
+  {:malli/schema [:-> ?Props mallard.store/?DataStore]}
   [{:keys [mongo collection lock-timeout-ms] :as params}]
   (let [db (:db mongo)]
-    (reify datastore.api/DataStore
+    (reify mallard.store/DataStore
       (load-state [_]
         (let [state (mongo/find-one db collection {:_id "state"})]
-          (-> (m/decode datastore.api/?State state mt/json-transformer)
+          (-> (m/decode mallard.store/?State state mt/json-transformer)
               (dissoc :_id))))
       (save-state! [_ state]
-        (when-not (m/validate datastore.api/?State state)
+        (when-not (m/validate mallard.store/?State state)
           (throw (ex-info "State schema validation failed"
-                          {:errors (me/humanize (m/explain datastore.api/?State state))})))
+                          {:errors (me/humanize (m/explain mallard.store/?State state))})))
         (mongo/update-one db collection {:_id "state"}
                           {:$set state}
                           {:upsert? true}))
@@ -99,15 +107,3 @@
                             {:locked_at (:locked-at @lock)}
                             {:$unset {:locked_at 1}})
           (swap! lock #(assoc % :active false)))))))
-
-(def ?PropsSchema
-  [:map
-   [:collection :string]
-   [:lock-timeout-ms {:optional true} :int]
-   [:refresh-ms {:optional true} :int]
-   [:mongo :any]])
-
-(def component
-  {:gx/start {:gx/processor (fn [{:keys [props]}]
-                              (create-mongo-datastore props))
-              :gx/props-schema ?PropsSchema}})

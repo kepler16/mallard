@@ -1,6 +1,6 @@
 (ns k16.mallard.executor
   (:require
-   [k16.mallard.datastore :as datastore.api]
+   [k16.mallard.store :as datastore.api]
    [k16.mallard.log :as log]
    [malli.core :as m]
    [malli.error :as me]

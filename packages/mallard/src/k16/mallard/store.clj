@@ -1,4 +1,4 @@
-(ns k16.mallard.datastore
+(ns k16.mallard.store
   (:require
    [tick.core :as t]))
 
@@ -18,6 +18,8 @@
   [:map {:closed true}
    [:id :string]
    [:direction ?Direction]
+   [:metadata {:optional true}
+    [:map {:closed false}]]
    [:started_at ?instant]
    [:finished_at ?instant]])
 

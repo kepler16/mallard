@@ -1,4 +1,4 @@
-(ns k16.mallard.loaders.fs
+(ns k16.mallard.loader.fs
   (:require
    [clojure.core :as core]
    [clojure.java.io :as io]

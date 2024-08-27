@@ -1,8 +1,6 @@
-(ns k16.mallard.api
+(ns k16.mallard
   (:require
    [k16.mallard.executor :as executor]))
-
-(set! *warn-on-reflection* true)
 
 (defn run-up!
   "Execute all unapplied operations"

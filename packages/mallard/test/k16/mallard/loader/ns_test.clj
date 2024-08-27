@@ -1,13 +1,13 @@
-(ns k16.mallard.loaders.ns-test
+(ns k16.mallard.loader.ns-test
   (:require
    [clojure.test :refer [deftest is testing]]
-   [k16.mallard.loaders.ns :as loaders.ns]
+   [k16.mallard.loader.ns :as loader.ns]
    [matcher-combinators.test]))
 
 (deftest ns-loader-test
   (testing "It should load migrations from a given collection of namespaces"
-    (let [migrations (loaders.ns/load! '(fixtures.migrations.1-migration
-                                         fixtures.migrations.2-migration))]
+    (let [migrations (loader.ns/load! '(fixtures.migrations.1-migration
+                                        fixtures.migrations.2-migration))]
       (is (match? [{:id "1-migration"
                     :run-up! (requiring-resolve 'fixtures.migrations.1-migration/run-up!)
                     :run-down! (requiring-resolve 'fixtures.migrations.1-migration/run-down!)}
