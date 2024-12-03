@@ -36,6 +36,10 @@ jobs:
       with:
         version: 4.7.3
 
+    - name: Prep
+      run: |
+        kmono clojure -P ':*/*' -X :build:deps prep
+
     - name: Test
       run: |
         just test
