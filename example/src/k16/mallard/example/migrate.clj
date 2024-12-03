@@ -3,7 +3,7 @@
    [clojure.java.io :as io]
    [k16.mallard :as mallard]
    [k16.mallard.loader.fs :as loader.fs]
-   [k16.mallard.store.sql :as store.sql]
+   [k16.mallard.store.sqlite :as store.sqlite]
    [taoensso.timbre :as log]
    [next.jdbc :as jdbc])
   (:gen-class))
@@ -22,7 +22,7 @@
 
 (defn run-migrations [args]
   (let [context (create-context)
-        datastore (store.sql/create-sqlite-datastore
+        datastore (store.sqlite/create-datastore
                    {:db (:db context)
                     :table-name "migrations"})]
     (mallard/run {:context context
