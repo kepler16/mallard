@@ -28,7 +28,7 @@ jobs:
         cache-dependency-path: '**/deps.edn'
 
     - uses: extractions/setup-just@v2
-    - uses: DeLaGuardo/setup-clojure@13
+    - uses: DeLaGuardo/setup-clojure@13.0
       with:
         cli: latest
     - name: Setup Kmono

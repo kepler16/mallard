@@ -67,6 +67,6 @@
     (kmono.build/for-each-package packages
       (fn [_]
         (kaven.deploy/deploy
-         {:jar-path jar-file
+         {:jar-path (b/resolve-path jar-file)
           :repository {:id "clojars"
                        :credentials clojars-credentials}})))))
