@@ -3,6 +3,8 @@
 This is a Clojure migrations API which aims to provide a generalized and versatile mechanism for running arbitrary
 migration operations.
 
+[![Clojars Project](https://img.shields.io/clojars/v/com.kepler16/mallard.svg)](https://clojars.org/com.kepler16/mallard)
+
 ## Goals
 
 - Allow running arbitrary operations as code.
