@@ -120,8 +120,8 @@
     (log/info (str "Executing operation " id " [" direction "]"))
 
     (case direction
-      :up (run-up! context)
-      :down (run-down! context))
+      :up (when run-up! (run-up! context))
+      :down (when run-down! (run-down! context)))
 
     (log/info "Success")
 
