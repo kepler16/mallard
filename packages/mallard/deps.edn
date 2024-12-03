@@ -1,7 +1,7 @@
 {:kmono/package {:name mallard}
 
- :deps {tick/tick {:mvn/version "0.7.5"}
-        metosin/malli {:mvn/version "0.16.3"}}
+ :deps {tick/tick {:mvn/version "1.0"}
+        metosin/malli {:mvn/version "0.16.4"}}
 
  :aliases {:test {:extra-deps {lambdaisland/kaocha {:mvn/version "1.91.1392"}
                                nubank/matcher-combinators {:mvn/version "3.9.1"}}
