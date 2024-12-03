@@ -5,60 +5,76 @@ migration operations.
 
 ## Goals
 
-+ Allow running arbitrary operations as code.
-+ Allow storing migration state anywhere including in a store separate to the data being operated on.
-+ Have a mechanism for locking to prevent multiple operations from occurring at the same time.
-+ Keep a log of all operations that have ever been executed, including rollbacks, for historical records
-+ Allow deleting operations after they have been applied.
+- Allow running arbitrary operations as code.
+- Assume nothing about the work being performed.
+- Allow embedding migrations and the executor directly into an application.
+- Allow storing migration state anywhere including in a store separate to data being operated on.
+- Have a mechanism for locking to prevent multiple operations from occurring at the same time.
+- Keep a log of all operations that have ever been executed, including rollbacks, for historical records
+- Allow deleting operations after they have been applied.
 
 ## Quick start
 
-Add a new `migrate` alias to your projects `deps.edn` file.
+The expectation here is for this to be embedded into your application and therefore the setup is to configure a
+namespace with a `-main` function that calls the mallard APIs.
 
-```clj
+1. Add mallard to your project
+
+```clojure
 ;; deps.edn
-{:aliases {:migrate {:extra-deps {transit-engineering/migrate.clj {:local/root "RELEASE"}}
-                     :exec-fn transit.migrate.api/run
-                     :exec-args {:migrations-dir "resources/migrations"
-                                 :init-store! my.app.migrate.store/init!
-                                 :action :up}}}}
+{:deps {com.kepler16/mallard {:mvn/version "LATEST"}}}
 ```
 
-Define your datastore. Note that in practice you should use a datastore that is backed by a persistent database.
+2. Add a `migrate` namespace
 
-```clj
-(ns my.app.migrate.store
-  (:require [transit.migrate.stores.memory :as datastore.memory]))
+```clojure
+(ns example.main
+  (:require
+   [k16.mallard.store.memory :as store.memory]
+   [k16.mallard :as mallard]))
 
-(defn init! []
-  (datastore.memory/create-memory-datastore))
+(def ^:private migrations
+  (loader.fs/load! "example/migrations"))
+
+(defn run-migrations [args]
+  (let [datastore (store.memory/create-datastore)]
+    (mallard/run {:context {}
+                  :store datastore
+                  :operations migrations}
+                 args)))
+
+(defn -main [& args]
+  (run-migrations args))
 ```
 
-Add a new migration with a `run-up!` and a `run-down!` function defined.
+3. Add a migration file containing a `run-up!` and an optional `run-down!` function.
 
 ```clj
-(ns my.app.migrations.init-1)
+(ns example.migrations.init-1)
 
-(defn run-up! []
+(defn run-up! [context]
   (println "running up!"))
 
-(defn run-down! []
+(defn run-down! [context]
   (println "running down!"))
 ```
 
-And execute your migrations:
+4) And execute your migrations:
 
 ```bash
-clojure -X:migrate # Run all up migrations
-
-# Or you can provide the action explicitly.
-
-clojure -X:migrate :action :up # The same as before, just more explicit
-clojure -X:migrate :action :down # Undo all applied migrations
-clojure -X:migrate :action :redo # Redo the last applied migration
-clojure -X:migrate :action :undo # Undo the last applied migration
-clojure -X:migrate :action :next # Run the next unapplied migration
+# Run all up migrations
+clojure -M -m example.migrate up
+# Undo all migrations. Executes in reverse order
+clojure -M -m example.migrate down
+# Rerun the last applied migration (runs down then up)
+clojure -M -m example.migrate redo
+# Undo the last applied migration
+clojure -M -m example.migrate undo
+# Run the next unapplied migration. Same as up, but runs only 1
+clojure -M -m example.migrate next
 ```
+
+See the **[example project](./example/)** for a more involved setup.
 
 ## How it works
 
@@ -142,11 +158,11 @@ migrations are analysed at build time.
 You can either explicitly require each migration and use the `ns` loader or you can use the `fs` loader from a def:
 
 ```clj
-(def migrations 
+(def migrations
   "Preload migrations to ensure that the `require` statements are analysed during native-image compilation"
   (loaders.fs/load-migrations! "migrations")) ;; where the folder `migrations` is on your classpath.
 ```
 
 ## Roadmap
 
-+ Provide some way to run a migration on the migration state.
+- Provide some way to run a migration on the migration state.
