@@ -44,7 +44,7 @@
   - :store - a DataStore implementation
   - :operations - a set of operations to be executed"
   [props args]
-  (condp = (keyword (first args))
+  (condp = (keyword (or (first args) "up"))
     :up (run-up! props)
     :down (run-down! props)
     :next (run-next! props)
