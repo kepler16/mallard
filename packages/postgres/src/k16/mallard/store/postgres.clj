@@ -12,7 +12,7 @@
 
 (defonce LOCK_ID (hash "mallard_postgres_lock"))
 
-(def ^:private ^:sql log-table-schema
+(def ^:private ^:sql create-history-table
   "CREATE TABLE IF NOT EXISTS %s (
      id TEXT NOT NULL,
      direction TEXT NOT NULL,
@@ -48,11 +48,15 @@
 
 (defn create-datastore
   {:malli/schema [:-> ?Props mallard.store/?DataStore]}
-  [{:keys [ds table-name]}]
-  (let [log-table (str (or table-name "mallard_migrations") "_log")
+  [{:keys [ds schema-name table-name]
+    :or {schema-name "mallard"
+         table-name "schema_history"}}]
+  (let [history-table (str schema-name "." table-name)
         lock-sess-conn (atom nil)]
 
-    (jdbc/execute! ds [(format log-table-schema log-table)])
+    (jdbc/with-transaction [tx ds]
+      (jdbc/execute! tx [(format "create schema if not exists %s" schema-name)])
+      (jdbc/execute! tx [(format create-history-table history-table)]))
 
     (reify mallard.store/DataStore
       (load-state [_]
@@ -60,7 +64,7 @@
               (into []
                     (map row->entry)
                     (jdbc/plan ds
-                               [(format select-log-statement log-table)]
+                               [(format select-log-statement history-table)]
                                {:builder-fn rs/as-unqualified-lower-maps}))]
           {:log entries}))
 
@@ -70,10 +74,10 @@
                           {:errors (me/humanize
                                     (m/explain mallard.store/?State state))})))
 
-        (let [statement (format insert-log-statement log-table)
+        (let [statement (format insert-log-statement history-table)
               rows (map entry->row (:log state))]
           (jdbc/with-transaction [tx ds]
-            (jdbc/execute! tx [(str "DELETE FROM " log-table)])
+            (jdbc/execute! tx [(str "DELETE FROM " history-table)])
             (jdbc/execute-batch! tx statement rows {}))))
 
       (acquire-lock! [_]
