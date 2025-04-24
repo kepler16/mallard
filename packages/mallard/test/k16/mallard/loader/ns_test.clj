@@ -9,6 +9,7 @@
     (let [migrations (loader.ns/load! '(fixtures.migrations.1-migration
                                         fixtures.migrations.2-migration))]
       (is (match? [{:id "1-migration"
+                    :metadata {:some "metadata"}
                     :run-up! (requiring-resolve 'fixtures.migrations.1-migration/run-up!)
                     :run-down! (requiring-resolve 'fixtures.migrations.1-migration/run-down!)}
                    {:id "2-migration"

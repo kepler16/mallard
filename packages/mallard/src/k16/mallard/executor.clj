@@ -11,6 +11,7 @@
 (def ?Operation
   [:map
    [:id :string]
+   [:metadata {:optional true} :map]
    [:run-up! {:error/message "should be a function with one argument"
               :optional true}
     [:=> [:cat :any] :any]]
