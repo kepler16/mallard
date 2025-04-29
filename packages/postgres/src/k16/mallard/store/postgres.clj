@@ -4,9 +4,11 @@
    [malli.core :as m]
    [malli.error :as me]
    [next.jdbc :as jdbc]
-   [next.jdbc.result-set :as rs]
    [next.jdbc.date-time]
-   [tick.core :as t]))
+   [next.jdbc.result-set :as rs]
+   [tick.core :as t])
+  (:import
+   [java.lang AutoCloseable]))
 
 (set! *warn-on-reflection* true)
 
@@ -95,8 +97,7 @@
                             {:lock-id LOCK_ID})))))
 
       (release-lock! [_ _]
-        (when-let [conn @lock-sess-conn]
+        (with-open [^AutoCloseable conn @lock-sess-conn]
           (jdbc/execute! conn [(format "SELECT pg_advisory_unlock(%d)" LOCK_ID)])
-          (.close conn)
           (reset! lock-sess-conn nil))))))
 
