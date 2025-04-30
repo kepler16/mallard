@@ -13,6 +13,7 @@
                     :run-up! (requiring-resolve 'fixtures.migrations.1-migration/run-up!)
                     :run-down! (requiring-resolve 'fixtures.migrations.1-migration/run-down!)}
                    {:id "2-migration"
+                    :metadata {}
                     :run-up! (requiring-resolve 'fixtures.migrations.2-migration/run-up!)
                     :run-down! (requiring-resolve 'fixtures.migrations.2-migration/run-down!)}]
                   migrations)))))
