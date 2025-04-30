@@ -14,6 +14,6 @@
      (->> ~namespaces
           (map (fn [namespace#]
                  {:id (-> namespace# str (str/split #"\.") last)
-                  :metadata (meta (the-ns namespace#))
+                  :metadata (or (meta (the-ns namespace#)) {})
                   :run-up! (resolve (symbol (str namespace# "/run-up!")))
                   :run-down! (resolve (symbol (str namespace# "/run-down!")))})))))
