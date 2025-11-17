@@ -23,7 +23,8 @@
 
 (deftest pg-datastore-state-test
   (testing "PG store state read/write operations"
-    (let [store (store.pg/create-datastore {:ds *pg*})
+    (let [store (store.pg/create-datastore {:ds *pg*
+                                            :table-name "migration"})
           op {:id "1"
               :direction :up
               :started_at (t/now)
@@ -46,8 +47,10 @@
 
 (deftest pg-datastore-lock-test
   (testing "Should not allow more than one simultaneous lock"
-    (let [store (store.pg/create-datastore {:ds *pg*})
-          store2 (store.pg/create-datastore {:ds *pg*})]
+    (let [store (store.pg/create-datastore {:ds *pg*
+                                            :table-name "migration"})
+          store2 (store.pg/create-datastore {:ds *pg*
+                                             :table-name "migration"})]
       (testing "Aquiring lock"
         (let [lock (mallard.store/acquire-lock! store)]
           (is (boolean lock))

@@ -4,15 +4,12 @@
    [malli.core :as m]
    [malli.error :as me]
    [next.jdbc :as jdbc]
-   [next.jdbc.date-time]
    [next.jdbc.result-set :as rs]
    [tick.core :as t])
   (:import
    [java.lang AutoCloseable]))
 
 (set! *warn-on-reflection* true)
-
-(defonce LOCK_ID (hash "mallard_postgres_lock"))
 
 (def ^:private ^:sql create-history-table
   "CREATE TABLE IF NOT EXISTS %s (
@@ -31,7 +28,10 @@
 
 (defn- entry->row
   [{:keys [id direction started_at finished_at]}]
-  [id (name direction) started_at finished_at])
+  [id
+   (name direction)
+   (java.sql.Timestamp/from started_at)
+   (java.sql.Timestamp/from finished_at)])
 
 (def ^:private ^:sql insert-log-statement
   "INSERT INTO %s (id, direction, started_at, finished_at)
@@ -44,6 +44,7 @@
 (def ?Props
   [:map
    [:ds :any]
+   [:schema-name {:optional true} :string]
    [:table-name :string]
    [:lock-timeout-ms {:optional true} :int]
    [:refresh-ms {:optional true} :int]])
@@ -51,11 +52,8 @@
 (defn create-datastore
   {:malli/schema [:-> ?Props mallard.store/?DataStore]}
   [{:keys [ds schema-name table-name]
-    :or {schema-name "mallard"
-         table-name "schema_history"}}]
-  (let [history-table (str schema-name "." table-name)
-        lock-sess-conn (atom nil)]
-
+    :or {schema-name "mallard"}}]
+  (let [history-table (str schema-name "." table-name)]
     (jdbc/with-transaction [tx ds]
       (jdbc/execute! tx [(format "create schema if not exists %s" schema-name)])
       (jdbc/execute! tx [(format create-history-table history-table)]))
@@ -79,25 +77,23 @@
         (let [statement (format insert-log-statement history-table)
               rows (map entry->row (:log state))]
           (jdbc/with-transaction [tx ds]
-            (jdbc/execute! tx [(str "DELETE FROM " history-table)])
+            (jdbc/execute! tx [(str "delete from " history-table)])
             (jdbc/execute-batch! tx statement rows {}))))
 
       (acquire-lock! [_]
-        (let [conn (reset! lock-sess-conn (jdbc/get-connection ds))
+        (let [conn (jdbc/get-connection ds)
+              lock (hash (str history-table "_lock"))
               acquired? (-> (jdbc/execute-one!
                              conn
                              [(format
                                "select pg_try_advisory_lock(%d) as lock_acquired"
-                               LOCK_ID)]
+                               lock)]
                              {:return-keys true})
                             :lock_acquired)]
           (if acquired?
-            LOCK_ID
+            conn
             (throw (ex-info "Failed to acquire migration lock"
-                            {:lock-id LOCK_ID})))))
+                            {:lock-id lock})))))
 
-      (release-lock! [_ _]
-        (with-open [^AutoCloseable conn @lock-sess-conn]
-          (jdbc/execute! conn [(format "SELECT pg_advisory_unlock(%d)" LOCK_ID)])
-          (reset! lock-sess-conn nil))))))
-
+      (release-lock! [_ lock-conn]
+        (AutoCloseable/.close lock-conn)))))
