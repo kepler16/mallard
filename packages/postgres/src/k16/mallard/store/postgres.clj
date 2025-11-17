@@ -30,8 +30,8 @@
   [{:keys [id direction started_at finished_at]}]
   [id
    (name direction)
-   (java.sql.Timestamp/from started_at)
-   (java.sql.Timestamp/from finished_at)])
+   (java.sql.Timestamp/from ^java.time.Instant started_at)
+   (java.sql.Timestamp/from ^java.time.Instant finished_at)])
 
 (def ^:private ^:sql insert-log-statement
   "INSERT INTO %s (id, direction, started_at, finished_at)
