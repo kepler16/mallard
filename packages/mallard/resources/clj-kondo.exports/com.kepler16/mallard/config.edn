@@ -1,0 +1,2 @@
+{:linters {:mallard/invalid-usage {:level :error}}
+ :hooks {:analyze-call {k16.mallard.loader.ns/load! hooks.k16.mallard.loader.ns/load!}}}

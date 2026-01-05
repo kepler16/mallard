@@ -1,5 +1,7 @@
 {:kmono/package {:name mallard}
 
+ :paths ["src" "resources"]
+
  :deps {tick/tick {:mvn/version "1.0"}
         metosin/malli {:mvn/version "0.16.4"}}
 

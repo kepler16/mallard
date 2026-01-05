@@ -6,8 +6,8 @@
 
 (deftest ns-loader-test
   (testing "It should load migrations from a given collection of namespaces"
-    (let [migrations (loader.ns/load! '(fixtures.migrations.1-migration
-                                        fixtures.migrations.2-migration))]
+    (let [migrations (loader.ns/load! [fixtures.migrations.1-migration
+                                       fixtures.migrations.2-migration])]
       (is (match? [{:id "1-migration"
                     :metadata {:some "metadata"}
                     :run-up! (requiring-resolve 'fixtures.migrations.1-migration/run-up!)
