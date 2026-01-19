@@ -3,7 +3,11 @@
    [clj-kondo.hooks-api :as api]))
 
 (defn load! [{:keys [node]}]
-  (let [[_ namespaces] (:children node)]
+  (let [[_ opts namespaces] (:children node)
+
+        namespaces (if-not namespaces
+                     opts
+                     namespaces)]
     (when-not (= :vector (api/tag namespaces))
       (api/reg-finding! (assoc (meta namespaces)
                                :message "load! should be provided a vector of namespaces"
