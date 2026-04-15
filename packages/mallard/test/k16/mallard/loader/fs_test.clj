@@ -13,7 +13,7 @@
                     :run-up! ifn?
                     :run-down! ifn?}
                    {:id "2-migration"
-                    :metadata {}
+                    :metadata {:metadata-key "value"}
                     :run-up! ifn?
                     :run-down! matcher/absent}]
                   migrations)))))
