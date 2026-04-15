@@ -1,4 +1,5 @@
-(ns k16.mallard.log
+(ns k16.mallard.logger
+  {:no-doc true}
   (:import
    [java.lang System System$Logger System$Logger$Level]))
 

@@ -1,7 +1,7 @@
 (ns k16.mallard.executor
   (:require
    [k16.mallard.store :as datastore.api]
-   [k16.mallard.log :as log]
+   [k16.mallard.logger :as logger]
    [malli.core :as m]
    [malli.error :as me]))
 
@@ -125,13 +125,13 @@
   [context operation direction]
   (let [{:keys [id run-up! run-down! metadata]} operation
         ts (java.time.Instant/now)]
-    (log/info (str "Executing operation " id " [" direction "]"))
+    (logger/info (str "Executing operation " id " [" direction "]"))
 
     (case direction
       :up (when run-up! (run-up! context))
       :down (when run-down! (run-down! context)))
 
-    (log/info "Success")
+    (logger/info "Success")
 
     (cond-> {:id id
              :direction direction
@@ -160,12 +160,12 @@
 
     (try
       (if (pos? (count unapplied))
-        (log/info (str "Running " (count unapplied) " operations [" direction "]"))
-        (log/info "No unapplied operations to run"))
+        (logger/info (str "Running " (count unapplied) " operations [" direction "]"))
+        (logger/info "No unapplied operations to run"))
 
       (doseq [{:keys [id operation]} unapplied]
         (when (not operation)
-          (log/error (str "Cannot run :down. Operation " id " is missing"))
+          (logger/error (str "Cannot run :down. Operation " id " is missing"))
           (throw (ex-info (str "Missing operation " id) {:operation-id id})))
 
         (let [op (execute-one! context operation direction)
@@ -173,7 +173,7 @@
           (datastore.api/save-state! store {:log op-log'})))
 
       (catch Exception e
-        (log/error "Failed to execute operation" e)
+        (logger/error "Failed to execute operation" e)
         (throw e))
       (finally
         (datastore.api/release-lock! store lock)))

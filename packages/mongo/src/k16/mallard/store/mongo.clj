@@ -7,7 +7,7 @@
    [mongo-driver-3.collection :as mongo]
    [promesa.core :as p]
    [promesa.exec :as exec]
-   [k16.mallard.log :as log]
+   [k16.mallard.logger :as log]
    [tick.core :as t])
   (:import
    com.mongodb.client.result.UpdateResult))
