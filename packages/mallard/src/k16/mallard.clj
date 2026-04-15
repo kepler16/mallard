@@ -30,19 +30,19 @@
   (undo! props)
   (run-next! props))
 
-#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
+#_{:clojure-lsp/ignore [:clojure-lsp/unused-public-var]}
 (defn run
   "A run function designed to be called from an applications -main fn.
 
-  Accepts executor params (see below) as well as process argv arguments.
+   Accepts executor params (see below) as well as process argv arguments.
 
-  Available arguments are `[up, down, next, undo, redo]`.
+   Available arguments are `[up, down, next, undo, redo]`.
 
-  Executor `props` should be provided containing:
+   Executor `props` should be provided containing:
 
-  - :context - context map to be passed to executing operations
-  - :store - a DataStore implementation
-  - :operations - a set of operations to be executed"
+   - :context - context map to be passed to executing operations
+   - :store - a DataStore implementation
+   - :operations - a set of operations to be executed"
   [props args]
   (condp = (keyword (or (first args) "up"))
     :up (run-up! props)
