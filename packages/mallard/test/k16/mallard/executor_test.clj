@@ -95,22 +95,22 @@
 
 (deftest single-execution-test
   (let [store (store.memory/create-datastore)
-        op-log (executor/execute! {:store store
-                                   :operations migrations
-                                   :direction :up
-                                   :limit 1})]
+        oplog (executor/execute! {:store store
+                                  :operations migrations
+                                  :direction :up
+                                  :limit 1})]
 
-    (is (= 1 (count op-log)))
+    (is (= 1 (count oplog)))
     (is (match? [{:id "1"
                   :direction :up
                   :started_at inst?
                   :finished_at inst?}]
-                op-log))
+                oplog))
 
-    (is (= {:log op-log} (datastore.api/load-state store)))))
+    (is (= {:log oplog} (datastore.api/load-state store)))))
 
 (deftest metadata-propagation-test
-  (testing "Metadata from operations is included in op-log entries"
+  (testing "Metadata from operations is included in oplog entries"
     (let [store (store.memory/create-datastore)
           ops [{:id "1"
                 :metadata {:some-key "some-value"}
@@ -133,12 +133,12 @@
 
 (deftest multi-execution-test
   (let [store (store.memory/create-datastore)
-        op-log (executor/execute! {:store store
-                                   :operations migrations
-                                   :direction :up})]
+        oplog (executor/execute! {:store store
+                                  :operations migrations
+                                  :direction :up})]
 
-    (is (= 3 (count op-log)))
-    (is (= ["1" "2" "3"] (map :id op-log)))))
+    (is (= 3 (count oplog)))
+    (is (= ["1" "2" "3"] (mapv :id oplog)))))
 
 (deftest down-migration-test
   (let [store (store.memory/create-datastore)]
@@ -149,15 +149,15 @@
                                              :finished_at (now)}]})
 
     (testing "Undoing the last migration"
-      (let [op-log (executor/execute! {:store store
-                                       :operations migrations
-                                       :direction :down
-                                       :limit 1})]
+      (let [oplog (executor/execute! {:store store
+                                      :operations migrations
+                                      :direction :down
+                                      :limit 1})]
 
-        (is (= 2 (count op-log)))
+        (is (= 2 (count oplog)))
         (is (= [{:id "1" :direction :up}
                 {:id "1" :direction :down}]
-               (map #(select-keys % [:id :direction]) op-log)))))))
+               (mapv #(select-keys % [:id :direction]) oplog)))))))
 
 (deftest rerun-down-migration-test
   (let [store (store.memory/create-datastore)]
@@ -172,16 +172,16 @@
                                              :finished_at (now)}]})
 
     (testing "Rerunning the last migration"
-      (let [op-log (executor/execute! {:store store
-                                       :operations migrations
-                                       :direction :up
-                                       :limit 1})]
+      (let [oplog (executor/execute! {:store store
+                                      :operations migrations
+                                      :direction :up
+                                      :limit 1})]
 
-        (is (= 3 (count op-log)))
+        (is (= 3 (count oplog)))
         (is (= [{:id "1" :direction :up}
                 {:id "1" :direction :down}
                 {:id "1" :direction :up}]
-               (map #(select-keys % [:id :direction]) op-log)))))))
+               (mapv #(select-keys % [:id :direction]) oplog)))))))
 
 (deftest run-up-out-of-order-test
   (let [store (store.memory/create-datastore)]
@@ -195,16 +195,16 @@
                                              :started_at (now)
                                              :finished_at (now)}]})
 
-    (let [op-log (executor/execute! {:store store
-                                     :operations migrations
-                                     :direction :up
-                                     :limit 1})]
+    (let [oplog (executor/execute! {:store store
+                                    :operations migrations
+                                    :direction :up
+                                    :limit 1})]
 
-      (is (= 3 (count op-log)))
+      (is (= 3 (count oplog)))
       (is (= [{:id "1" :direction :up}
               {:id "3" :direction :up}
               {:id "2" :direction :up}]
-             (map #(select-keys % [:id :direction]) op-log))))))
+             (mapv #(select-keys % [:id :direction]) oplog))))))
 
 (deftest run-down-missing-migration-test
   (let [store (store.memory/create-datastore)]
