@@ -40,8 +40,10 @@
          (require (symbol namespace#)))
 
        (mapv (fn [namespace#]
-               {:id (-> namespace# (str/split #"\.") last)
-                :metadata (or (meta (the-ns (symbol namespace#))) {})
-                :run-up! (resolve (symbol (str namespace# "/run-up!")))
-                :run-down! (resolve (symbol (str namespace# "/run-down!")))})
+               (let [run-up# (resolve (symbol (str namespace# "/run-up!")))
+                     run-down# (resolve (symbol (str namespace# "/run-down!")))]
+                 (cond-> {:id (-> namespace# (str/split #"\.") last)
+                          :metadata (or (meta (the-ns (symbol namespace#))) {})
+                          :run-up! run-up#}
+                   run-down# (assoc :run-down! run-down#))))
              namespaces#))))

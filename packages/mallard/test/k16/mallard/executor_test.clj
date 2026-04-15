@@ -23,7 +23,8 @@
 
 (deftest executor-props-validation-test
   (testing "Executor should thrown an exception with explanation"
-    (let [ex (try (executor/execute! {:some :props}) (catch Exception e e))]
+    (let [ex (try (executor/execute! {:some :props})
+                  (catch Exception e e))]
       (is (= ExceptionInfo (type ex)))
       (is (= "Invalid arguments provided" (ex-message ex)))
       (is (= {:errors {:direction ["missing required key"],
@@ -44,6 +45,27 @@
                        :store ["should Implement DataStore protocol"],
                        :limit ["should be at least 1"]}}
              (ex-data ex))))))
+
+(deftest operation-down-not-required-test
+  (testing "Context is passed to runers"
+    (let [context {:hello "world"}
+          store (store.memory/create-datastore)
+          migs [{:id "1"
+                 :run-up! (fn [ctx]
+                            (is (= ctx context)))
+                 :run-down! (fn [ctx]
+                              (is (= ctx context)))}
+                {:id "2"
+                 :run-up! (fn [ctx]
+                            (is (= ctx context)))}]]
+      (executor/execute! {:store store
+                          :context context
+                          :direction :up
+                          :operations migs})
+      (executor/execute! {:store store
+                          :context context
+                          :direction :down
+                          :operations migs}))))
 
 (deftest executor-context-test
   (testing "Context is passed to runers"
