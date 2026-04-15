@@ -1,9 +1,10 @@
 (ns k16.mallard.executor-test
   (:require
    [clojure.test :refer [deftest is testing]]
-   [k16.mallard.store :as datastore.api]
    [k16.mallard.executor :as executor]
+   [k16.mallard.store :as datastore.api]
    [k16.mallard.store.memory :as store.memory]
+   [matcher-combinators.matchers :as matcher]
    [matcher-combinators.test]
    [tick.core :as t])
   (:import
@@ -82,6 +83,28 @@
                 op-log))
 
     (is (= {:log op-log} (datastore.api/load-state store)))))
+
+(deftest metadata-propagation-test
+  (testing "Metadata from operations is included in op-log entries"
+    (let [store (store.memory/create-datastore)
+          ops [{:id "1"
+                :metadata {:some-key "some-value"}
+                :run-up! (fn [_])
+                :run-down! (fn [_])}
+               {:id "2"
+                :run-up! (fn [_])
+                :run-down! (fn [_])}]]
+      (executor/execute! {:store store
+                          :operations ops
+                          :direction :up})
+
+      (is (match? {:log [{:id "1"
+                          :direction :up
+                          :metadata {:some-key "some-value"}}
+                         {:id "2"
+                          :metadata matcher/absent
+                          :direction :up}]}
+                  (datastore.api/load-state store))))))
 
 (deftest multi-execution-test
   (let [store (store.memory/create-datastore)

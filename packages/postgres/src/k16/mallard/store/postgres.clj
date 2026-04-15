@@ -1,5 +1,6 @@
 (ns k16.mallard.store.postgres
   (:require
+   [jsonista.core :as json]
    [k16.mallard.store :as mallard.store]
    [malli.core :as m]
    [malli.error :as me]
@@ -7,39 +8,60 @@
    [next.jdbc.result-set :as rs]
    [tick.core :as t])
   (:import
-   [java.lang AutoCloseable]))
+   [java.lang AutoCloseable]
+   [org.postgresql.util PGobject]))
 
 (set! *warn-on-reflection* true)
 
 (def ^:private ^:sql create-history-table
   "CREATE TABLE IF NOT EXISTS %s (
-     id TEXT NOT NULL,
-     direction TEXT NOT NULL,
-     started_at TIMESTAMP NOT NULL,
-     finished_at TIMESTAMP NOT NULL
-   )")
+     id text NOT NULL,
+     direction text NOT NULL,
+     metadata jsonb,
+     started_at timestamp NOT NULL,
+     finished_at timestamp NOT NULL
+   );")
+
+(def ^:private ^:sql add-metadata-column
+  "ALTER TABLE %s
+     ADD COLUMN IF NOT EXISTS metadata jsonb")
 
 (defn- row->entry
-  [{:keys [id direction started_at finished_at]}]
-  {:id id
-   :direction (keyword direction)
-   :started_at (t/instant started_at)
-   :finished_at (t/instant finished_at)})
+  [{:keys [id direction metadata started_at finished_at]}]
+  (cond-> {:id id
+           :direction (keyword direction)
+           :started_at (t/instant started_at)
+           :finished_at (t/instant finished_at)}
+    metadata
+    (assoc :metadata (json/read-value (PGobject/.getValue metadata)
+                                      json/keyword-keys-object-mapper))))
+
+(defn- metadata->pgobject ^PGobject [m]
+  (let [object (PGobject.)]
+    (PGobject/.setType object "jsonb")
+    (PGobject/.setValue object (json/write-value-as-string m))
+    object))
 
 (defn- entry->row
-  [{:keys [id direction started_at finished_at]}]
+  [{:keys [id direction metadata started_at finished_at]}]
   [id
    (name direction)
+   (when (seq metadata)
+     (metadata->pgobject metadata))
    (java.sql.Timestamp/from ^java.time.Instant started_at)
    (java.sql.Timestamp/from ^java.time.Instant finished_at)])
 
 (def ^:private ^:sql insert-log-statement
-  "INSERT INTO %s (id, direction, started_at, finished_at)
-   VALUES (?, ?, ?, ?)")
+  "INSERT INTO %s (id, direction, metadata, started_at, finished_at)
+     VALUES (?, ?, ?, ?, ?)")
 
 (def ^:private ^:sql select-log-statement
-  "SELECT * FROM %s
-   ORDER BY started_at ASC")
+  "SELECT
+     *
+   FROM
+     %s
+   ORDER BY
+     started_at ASC")
 
 (def ?Props
   [:map
@@ -55,8 +77,9 @@
     :or {schema-name "mallard"}}]
   (let [history-table (str schema-name "." table-name)]
     (jdbc/with-transaction [tx ds]
-      (jdbc/execute! tx [(format "create schema if not exists %s" schema-name)])
-      (jdbc/execute! tx [(format create-history-table history-table)]))
+      (jdbc/execute! tx [(format "CREATE SCHEMA IF NOT EXISTS %s" schema-name)])
+      (jdbc/execute! tx [(format create-history-table history-table)])
+      (jdbc/execute! tx [(format add-metadata-column history-table)]))
 
     (reify mallard.store/DataStore
       (load-state [_]
@@ -75,9 +98,9 @@
                                     (m/explain mallard.store/?State state))})))
 
         (let [statement (format insert-log-statement history-table)
-              rows (map entry->row (:log state))]
+              rows (mapv entry->row (:log state))]
           (jdbc/with-transaction [tx ds]
-            (jdbc/execute! tx [(str "delete from " history-table)])
+            (jdbc/execute! tx [(str "DELETE FROM" " " history-table)])
             (jdbc/execute-batch! tx statement rows {}))))
 
       (acquire-lock! [_]

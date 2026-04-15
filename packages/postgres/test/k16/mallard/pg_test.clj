@@ -45,6 +45,30 @@
         (is (match? (-> op (assoc :id "2") (dissoc :started_at :finished_at))
                     (-> state :log second)))))))
 
+(deftest pg-datastore-metadata-test
+  (testing "PG store metadata round-trip"
+    (let [store (store.pg/create-datastore {:ds *pg*
+                                            :table-name "migration_meta"})
+          op-with-meta {:id "1"
+                        :direction :up
+                        :metadata {:some-key "some-value"
+                                   :nested {:a 1}}
+                        :started_at (t/now)
+                        :finished_at (t/now)}
+          op-without-meta {:id "2"
+                           :direction :up
+                           :started_at (t/now)
+                           :finished_at (t/now)}]
+
+      (mallard.store/save-state! store {:log [op-with-meta op-without-meta]})
+
+      (let [state (mallard.store/load-state store)
+            entries (:log state)]
+        (is (= 2 (count entries)))
+        (is (= {:some-key "some-value" :nested {:a 1}}
+               (:metadata (first entries))))
+        (is (nil? (:metadata (second entries))))))))
+
 (deftest pg-datastore-lock-test
   (testing "Should not allow more than one simultaneous lock"
     (let [store (store.pg/create-datastore {:ds *pg*

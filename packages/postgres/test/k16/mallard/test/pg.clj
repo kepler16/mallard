@@ -36,7 +36,7 @@
 (def base-ds-config
   {:dbtype "postgresql"
    :host "localhost"
-   :port 5432
+   :port 15432
    :dbname "postgres"
    :user "postgres"
    :password "postgres"})
@@ -64,7 +64,7 @@
                      :password "postgres"
                      :database-name DB_NAME
                      :server-name "localhost"
-                     :port-number 5432
+                     :port-number 15432
                      :register-mbeans false})
 
 (defn create-test-ds! []

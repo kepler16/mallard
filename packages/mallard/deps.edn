@@ -3,9 +3,9 @@
  :paths ["src" "resources"]
 
  :deps {tick/tick {:mvn/version "1.0"}
-        metosin/malli {:mvn/version "0.16.4"}}
+        metosin/malli {:mvn/version "0.20.1"}}
 
  :aliases {:test {:extra-deps {lambdaisland/kaocha {:mvn/version "1.91.1392"}
-                               nubank/matcher-combinators {:mvn/version "3.9.1"}}
+                               nubank/matcher-combinators {:mvn/version "3.10.0"}}
                   :extra-paths ["test"]
                   :main-opts ["-m" "kaocha.runner" "-c" "../../tests.edn"]}}}

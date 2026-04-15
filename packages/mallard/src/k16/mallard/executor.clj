@@ -116,7 +116,7 @@
 (defn- execute-one!
   "Execute a single operation and return an ?OpLogEntry to be appended to the op-log."
   [context operation direction]
-  (let [{:keys [id run-up! run-down!]} operation
+  (let [{:keys [id run-up! run-down! metadata]} operation
         ts (t/now)]
     (log/info (str "Executing operation " id " [" direction "]"))
 
@@ -126,10 +126,11 @@
 
     (log/info "Success")
 
-    {:id id
-     :direction direction
-     :started_at ts
-     :finished_at (t/now)}))
+    (cond-> {:id id
+             :direction direction
+             :started_at ts
+             :finished_at (t/now)}
+      (seq metadata) (assoc :metadata metadata))))
 
 (defn execute!
   "Execute the given operations and append to the op-log which is then returned. This will handle locking
