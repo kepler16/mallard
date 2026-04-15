@@ -1,13 +1,13 @@
 (ns k16.mallard.store
-  (:require
-   [tick.core :as t]))
-
-(def ^:private inst-codec
-  {:encode/json #(.toString ^java.time.Instant %)
-   :decode/json #(t/instant %)})
+  (:import
+   [java.time Instant]))
 
 (def ^:private ?instant
-  [:fn (merge inst-codec {:error/message "Should be an #instant"}) t/instant?])
+  [:fn {:encode/json #(Instant/.toString %)
+        :decode/json #(Instant/parse %)
+        :error/message "Should be an #instant"}
+   (fn -instant? [value]
+     (instance? Instant value))])
 
 (def ?Direction
   [:enum :up :down])

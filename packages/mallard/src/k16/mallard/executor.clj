@@ -3,8 +3,7 @@
    [k16.mallard.store :as datastore.api]
    [k16.mallard.log :as log]
    [malli.core :as m]
-   [malli.error :as me]
-   [tick.core :as t]))
+   [malli.error :as me]))
 
 (def ?Operation
   [:map
@@ -125,7 +124,7 @@
    op-log."
   [context operation direction]
   (let [{:keys [id run-up! run-down! metadata]} operation
-        ts (t/now)]
+        ts (java.time.Instant/now)]
     (log/info (str "Executing operation " id " [" direction "]"))
 
     (case direction
@@ -137,7 +136,7 @@
     (cond-> {:id id
              :direction direction
              :started_at ts
-             :finished_at (t/now)}
+             :finished_at (java.time.Instant/now)}
       (seq metadata) (assoc :metadata metadata))))
 
 (defn execute!

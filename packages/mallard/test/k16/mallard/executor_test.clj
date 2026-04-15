@@ -5,10 +5,12 @@
    [k16.mallard.store :as datastore.api]
    [k16.mallard.store.memory :as store.memory]
    [matcher-combinators.matchers :as matcher]
-   [matcher-combinators.test]
-   [tick.core :as t])
+   [matcher-combinators.test])
   (:import
    [clojure.lang ExceptionInfo]))
+
+(defn- now []
+  (java.time.Instant/now))
 
 (def migrations
   [{:id "1"
@@ -142,8 +144,8 @@
 
     (datastore.api/save-state! store {:log [{:id "1"
                                              :direction :up
-                                             :started_at (t/now)
-                                             :finished_at (t/now)}]})
+                                             :started_at (now)
+                                             :finished_at (now)}]})
 
     (testing "Undoing the last migration"
       (let [op-log (executor/execute! {:store store
@@ -161,12 +163,12 @@
 
     (datastore.api/save-state! store {:log [{:id "1"
                                              :direction :up
-                                             :started_at (t/now)
-                                             :finished_at (t/now)}
+                                             :started_at (now)
+                                             :finished_at (now)}
                                             {:id "1"
                                              :direction :down
-                                             :started_at (t/now)
-                                             :finished_at (t/now)}]})
+                                             :started_at (now)
+                                             :finished_at (now)}]})
 
     (testing "Rerunning the last migration"
       (let [op-log (executor/execute! {:store store
@@ -185,12 +187,12 @@
 
     (datastore.api/save-state! store {:log [{:id "1"
                                              :direction :up
-                                             :started_at (t/now)
-                                             :finished_at (t/now)}
+                                             :started_at (now)
+                                             :finished_at (now)}
                                             {:id "3"
                                              :direction :up
-                                             :started_at (t/now)
-                                             :finished_at (t/now)}]})
+                                             :started_at (now)
+                                             :finished_at (now)}]})
 
     (let [op-log (executor/execute! {:store store
                                      :operations migrations
@@ -208,8 +210,8 @@
 
     (datastore.api/save-state! store {:log [{:id "1"
                                              :direction :up
-                                             :started_at (t/now)
-                                             :finished_at (t/now)}]})
+                                             :started_at (now)
+                                             :finished_at (now)}]})
 
     (let [ex (try (executor/execute! {:store store
                                       :operations []
