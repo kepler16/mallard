@@ -6,7 +6,7 @@
    [malli.error :as me]))
 
 (def ?Operation
-  [:map
+  [:map {:closed true}
    [:id :string]
    [:metadata {:optional true} :map]
    [:run-up! {:error/message "should be a function with one argument"
@@ -21,7 +21,7 @@
    ?Operation])
 
 (def ?ExecuteProps
-  [:map
+  [:map {:closed true}
    [:context {:optional true} [:maybe :any]]
    [:store datastore.api/?DataStore]
    [:operations ?Operations]

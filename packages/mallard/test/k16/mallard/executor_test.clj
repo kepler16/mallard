@@ -31,7 +31,8 @@
       (is (= "Invalid arguments provided" (ex-message ex)))
       (is (= {:errors {:direction ["missing required key"],
                        :operations ["missing required key"],
-                       :store ["missing required key"]}}
+                       :store ["missing required key"]
+                       :some ["disallowed key"]}}
              (ex-data ex))))
 
     (let [ex (try (executor/execute! {:operations :wrong
