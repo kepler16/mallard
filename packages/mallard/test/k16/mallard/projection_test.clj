@@ -23,8 +23,14 @@
           :id "1"
           :direction :up)
    (assoc base
+          :id "2"
+          :direction :up)
+   (assoc base
           :id "3"
           :direction :up)
+   (assoc base
+          :id "2"
+          :direction :down)
    (assoc base
           :id "4"
           :direction :up)])
@@ -42,5 +48,5 @@
                 nil
                 (catch Exception e e))]
     (is (instance? Exception ex))
-    (is (= "Error reprocessing oplog. A :down operation did not follow an :up operation of the same id"
+    (is (= "Error processing oplog. A :down operation did not follow an :up operation of the same id"
            (ex-message ex)))))

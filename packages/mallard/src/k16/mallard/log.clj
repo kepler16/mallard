@@ -1,5 +1,21 @@
 (ns k16.mallard.log)
 
+(defn- drop-previous-log
+  [operations op-id]
+  (let [found (volatile! false)
+        operations (filterv
+                    (fn [operation]
+                      (if (= op-id (:id operation))
+                        (do (vreset! found true)
+                            false)
+                        true))
+                    operations)]
+    (when-not @found
+      (throw (ex-info (str "Error processing oplog. A :down operation did not"
+                           " follow an :up operation of the same id")
+                      {:op-id op-id})))
+    operations))
+
 (defn project
   "Reduces over the `oplog` to project the concrete sequence of currently
    applied operations.
@@ -21,12 +37,7 @@
    (fn [operations op]
      (case (:direction op)
        :up (conj operations (dissoc op :direction))
-       :down (if (= (:id op) (:id (last operations)))
-               (pop operations)
-               (throw (ex-info (str "Error reprocessing oplog. A :down operation did not "
-                                    "follow an :up operation of the same id")
-                               {:last-op (last operations)
-                                :current-op op})))))
+       :down (drop-previous-log operations (:id op))))
    []
    oplog))
 
