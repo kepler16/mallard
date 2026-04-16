@@ -5,8 +5,10 @@
    [k16.mallard.store :as mallard.store]
    [k16.mallard.store.postgres :as store.pg]
    [k16.mallard.test.pg :as test.pg]
-   [matcher-combinators.test]
-   [tick.core :as t]))
+   [matcher-combinators.test]))
+
+(defn- now []
+  (java.time.Instant/now))
 
 (def ^:dynamic *pg* nil)
 
@@ -27,8 +29,8 @@
                                             :table-name "migration"})
           op {:id "1"
               :direction :up
-              :started_at (t/now)
-              :finished_at (t/now)}]
+              :started_at (now)
+              :finished_at (now)}]
 
       (is (empty? (:log (mallard.store/load-state store))))
       (mallard.store/save-state! store {:log [op]})
@@ -53,12 +55,12 @@
                         :direction :up
                         :metadata {:some-key "some-value"
                                    :nested {:a 1}}
-                        :started_at (t/now)
-                        :finished_at (t/now)}
+                        :started_at (now)
+                        :finished_at (now)}
           op-without-meta {:id "2"
                            :direction :up
-                           :started_at (t/now)
-                           :finished_at (t/now)}]
+                           :started_at (now)
+                           :finished_at (now)}]
 
       (mallard.store/save-state! store {:log [op-with-meta op-without-meta]})
 
