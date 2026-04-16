@@ -2,7 +2,11 @@
   (:require
    [clojure.core :as core]
    [clojure.java.io :as io]
-   [clojure.string :as str]))
+   [clojure.string :as str])
+  (:import
+   [java.io File]))
+
+(set! *warn-on-reflection* true)
 
 (defn- file->ns
   "Extract clojure ns name from a file"
@@ -11,31 +15,59 @@
        (re-find #"^\(ns\s+([^\s);]+)")
        second))
 
-(defn resolve-operation-files [dir]
+(defn- resolve-operation-files [dir]
   (->> (or (io/resource dir)
            (io/file dir))
        io/file
        file-seq
-       (filterv #(.isFile ^java.io.File %))
-       (filterv #(str/ends-with? (.getName ^java.io.File %) ".clj"))
+       (filterv #(File/.isFile %))
+       (filterv #(str/ends-with? (File/.getName %) ".clj"))
        (mapv file->ns)
        sort
        vec))
 
 #_{:clj-kondo/ignore [:discouraged-var]}
 (defmacro load!
-  "Given a file or resource directory path attempt to load all files found
-   within as operations.
+  "Load all operation files found at a given file or resource URL.
 
-   This is implemented as a macro to allow preloading operations during
-   native-image compilation. This also allows loading of operations when they
-   are bundled as resources within a jar as the full resource paths are known up
-   front."
+   Expects files to be Clojure namespaces with exported `run-up!` and optionally
+   `run-down!` functions.
+
+   Any metadata on the operation namespace will be loaded and included in the
+   result.
+
+   ```clojure
+   (ns com.example.migrations.init-db
+     {:some-key \"some-value\"})
+
+   (defn run-up! [context]
+     ...)
+
+   ;; Optional
+   (defn run-down! [context]
+     ...)
+   ```
+
+   This is implemented in such a way as to allow being used within GraalVM
+   native-image compiled applications.
+
+   When used in this context, make sure to call it in the root of a loaded
+   namespace.
+
+   ```clojure
+   (ns com.example.migrate
+     (:require
+      [k16.mallard.loader.fs :as loader.fs]))
+
+   ;; Will be properly loaded and compiled into your native-image
+   (def migrations
+     (loader.fs/load! \"com/example/migrations\"))
+   ```"
   [dir]
-  (let [namespaces (try (resolve-operation-files dir)
+  (let [namespaces (try (#'k16.mallard.loader.fs/resolve-operation-files dir)
                         (catch Exception _))]
     `(let [namespaces# (or ~namespaces
-                           (resolve-operation-files ~dir))]
+                           (#'k16.mallard.loader.fs/resolve-operation-files ~dir))]
        (doseq [namespace# namespaces#]
          (require (symbol namespace#)))
 

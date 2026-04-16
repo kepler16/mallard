@@ -4,7 +4,11 @@
 
 #_{:clj-kondo/ignore [:discouraged-var]}
 (defmacro load!
-  "Dynamically require all given namespaces as operation files."
+  "Dynamically require all given namespaces as operation files.
+
+   Functionally this operates nearly identically to
+   [k16.mallard.loader.fs/load!] - for more information on how this works,
+   please read its docstring."
   ([namespaces] `(load! {} ~namespaces))
   ([opts namespaces]
    (let [namespaces (if (= 'quote (first namespaces))

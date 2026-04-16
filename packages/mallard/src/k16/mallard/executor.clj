@@ -30,8 +30,8 @@
    [:direction [:enum :up :down]]])
 
 (defn- execute-one!
-  "Execute a single operation and return an ?OpLogEntry to be appended to the
-   oplog."
+  "Execute a single operation and return a [k16.mallard.store/?OpLogEntry] to be
+   appended to the oplog."
   [context operation direction]
   (let [{:keys [id run-up! run-down! metadata]} operation
         ts (java.time.Instant/now)]
@@ -50,9 +50,12 @@
       (seq metadata) (assoc :metadata metadata))))
 
 (defn execute!
-  "Execute the given operations and append to the oplog which is then returned.
+  "Execute the given operations and append to the oplog.
+
    This will handle locking and will mutate the datastore with the changing
-   oplog as operations are applied."
+   oplog as operations are applied.
+
+   Returns the full oplog on completion."
   [{:keys [context store operations direction limit] :as props}]
   (when-not (m/validate ?ExecuteProps props)
     (throw (ex-info "Invalid arguments provided"

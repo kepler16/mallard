@@ -49,5 +49,6 @@
     "Release a previously acquired lock"))
 
 (def ?DataStore
-  [:fn {:error/message "should Implement DataStore protocol"}
-   (partial satisfies? DataStore)])
+  [:fn {:error/message "should implement the DataStore protocol"}
+   (fn -datastore? [value]
+     (satisfies? DataStore value))])

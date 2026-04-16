@@ -45,7 +45,7 @@
       (is (= "Invalid arguments provided" (ex-message ex)))
       (is (= {:errors {:direction ["should be either :up or :down"],
                        :operations ["should be a sequence of operations"],
-                       :store ["should Implement DataStore protocol"],
+                       :store ["should implement the DataStore protocol"],
                        :limit ["should be at least 1"]}}
              (ex-data ex))))))
 
