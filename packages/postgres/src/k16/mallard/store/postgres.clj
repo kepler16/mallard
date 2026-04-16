@@ -5,8 +5,7 @@
    [malli.core :as m]
    [malli.error :as me]
    [next.jdbc :as jdbc]
-   [next.jdbc.result-set :as rs]
-   [tick.core :as t])
+   [next.jdbc.result-set :as rs])
   (:import
    [java.lang AutoCloseable]
    [org.postgresql.util PGobject]))
@@ -30,8 +29,8 @@
   [{:keys [id direction metadata started_at finished_at]}]
   (cond-> {:id id
            :direction (keyword direction)
-           :started_at (t/instant started_at)
-           :finished_at (t/instant finished_at)}
+           :started_at (java.sql.Timestamp/.toInstant started_at)
+           :finished_at (java.sql.Timestamp/.toInstant finished_at)}
     metadata
     (assoc :metadata (json/read-value (PGobject/.getValue metadata)
                                       json/keyword-keys-object-mapper))))
