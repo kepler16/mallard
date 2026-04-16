@@ -1,10 +1,18 @@
 (ns k16.mallard.store
   (:import
-   [java.time Instant]))
+   [java.time Instant]
+   [java.util Date]))
 
 (def ^:private ?instant
   [:fn {:encode/json #(Instant/.toString %)
-        :decode/json #(Instant/parse %)
+        :decode/json (fn -decode-instant [value]
+                       (cond
+                         (string? value) (Instant/parse value)
+                         (instance? Date value) (Date/.toInstant value)
+
+                         :else (throw (ex-info "Unsupported time value"
+                                               {:value value}))))
+
         :error/message "Should be an #instant"}
    (fn -instant? [value]
      (instance? Instant value))])
